@@ -22,3 +22,16 @@ Generate a brief, welcoming, professional greeting (1-2 sentences max). Do NOT a
 export const buildConversationHistory = (messages) => {
   return messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
 };
+
+export const FOLLOW_UP_PROMPT = (role, history, nextQuestion) => `
+You are an expert technical interviewer named Natalie conducting a ${role} interview.
+Here is the conversation history so far:
+${history}
+
+The candidate just answered your previous question. 
+1. If their answer was incomplete or wrong, briefly correct them or acknowledge it in 1 sentence.
+2. If they were correct, briefly praise them in 1 sentence.
+3. Finally, ask the NEXT QUESTION provided below verbatim.
+
+NEXT QUESTION: ${nextQuestion || "That concludes our questions. Thank you for your time!"}
+`;

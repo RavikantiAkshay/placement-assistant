@@ -16,5 +16,14 @@ export const startInterview = async (role, difficulty, resumeText, totalQuestion
     resumeText,
     totalQuestions,
   });
+};
+
+export const getInterview = async (id) => {
+  const response = await API.get(`/interview/${id}`);
+  return response.data.data;
+};
+
+export const submitTextAnswer = async (id, answer) => {
+  const response = await API.post(`/interview/${id}/answer`, { answer });
   return response.data.data;
 };

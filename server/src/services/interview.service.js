@@ -39,3 +39,47 @@ export const startInterview = async (userId, role, difficulty, resumeText, candi
     totalQuestions,
   };
 };
+
+export const getInterviewById = async (interviewId, userId) => {
+  const interview = await Interview.findOne({ _id: interviewId, userId });
+  if (!interview) {
+    throw new Error('Interview not found');
+  }
+  return interview;
+};
+
+export const submitAnswer = async (interviewId, userId, answerText) => {
+  const interview = await getInterviewById(interviewId, userId);
+  
+  if (interview.status === 'completed') {
+    throw new Error('Interview is already completed');
+  }
+
+  // 1. Add candidate's answer to history
+  interview.messages.push({ role: 'candidate', content: answerText });
+
+  // 2. Check if we reached the end
+  let nextQuestion = '';
+  if (interview.currentQuestion < interview.totalQuestions) {
+    nextQuestion = interview.questions[interview.currentQuestion];
+    interview.currentQuestion += 1;
+  } else {
+    // End of interview
+    interview.status = 'completed';
+    const farewell = "That was the last question! Thank you for your time. Your feedback report is being generated.";
+    interview.messages.push({ role: 'ai', content: farewell });
+    await interview.save();
+    return { aiResponse: farewell, isCompleted: true };
+  }
+
+  // 3. Get follow-up / reaction from Groq
+  const historyString = buildConversationHistory(interview.messages.slice(-6)); // Keep recent context
+  const prompt = FOLLOW_UP_PROMPT(interview.role, historyString, nextQuestion);
+  const aiResponse = await askGroq(prompt);
+
+  // 4. Add AI response to history
+  interview.messages.push({ role: 'ai', content: aiResponse });
+  await interview.save();
+
+  return { aiResponse, isCompleted: false, currentQuestion: interview.currentQuestion };
+};
