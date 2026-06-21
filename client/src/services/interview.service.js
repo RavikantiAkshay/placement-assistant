@@ -16,6 +16,7 @@ export const startInterview = async (role, difficulty, resumeText, totalQuestion
     resumeText,
     totalQuestions,
   });
+  return response.data.data;
 };
 
 export const getInterview = async (id) => {
@@ -36,4 +37,9 @@ export const getAllInterviews = async () => {
 export const getFeedback = async (id) => {
   const response = await API.get(`/interview/${id}/feedback`);
   return response.data.data;
+};
+
+export const deleteInterview = async (id) => {
+  const response = await API.delete(`/interview/${id}`);
+  return response.data;
 };

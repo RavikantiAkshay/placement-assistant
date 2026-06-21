@@ -8,7 +8,7 @@ export const askGroq = async (prompt) => {
     }
     return response;
   } catch (error) {
-    console.error('Groq Service Error:', error);
-    throw new Error('Failed to communicate with AI interviewer. Please try again.');
+    console.error('Groq Service Error Details:', error);
+    throw new Error('Failed to communicate with AI interviewer: ' + (error.message || 'Unknown error'));
   }
 };

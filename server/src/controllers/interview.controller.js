@@ -62,3 +62,12 @@ export const getFeedback = async (req, res, next) => {
     next(error);
   }
 };
+
+export const deleteInterview = async (req, res, next) => {
+  try {
+    await interviewService.deleteInterview(req.params.id, req.user._id);
+    res.json({ success: true, message: 'Interview deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};

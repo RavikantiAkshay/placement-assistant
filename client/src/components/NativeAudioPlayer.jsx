@@ -11,7 +11,7 @@ const NativeAudioPlayer = ({ text, onEnded, autoPlay }) => {
 
     const utterance = new SpeechSynthesisUtterance(text);
     
-    // Try to find a good female English voice (to match "Natalie")
+    // Try to find a good female English voice
     const voices = window.speechSynthesis.getVoices();
     const femaleVoice = voices.find(v => 
       v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Google US English') || v.name.includes('Samantha'))

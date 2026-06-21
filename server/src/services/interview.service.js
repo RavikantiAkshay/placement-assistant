@@ -4,6 +4,8 @@ import { parseGroqJSON } from '../utils/prompts.utils.js';
 import { GENERATE_QUESTIONS_PROMPT, INTERVIEW_GREETING_PROMPT } from '../constants/prompts.js';
 
 export const startInterview = async (userId, role, difficulty, resumeText, candidateName, totalQuestions = 5) => {
+  // Removed daily limit constraint for development
+
   // 1. Generate personalized questions from the resume
   const prompt = GENERATE_QUESTIONS_PROMPT(role, difficulty, resumeText, totalQuestions);
   const aiResponse = await askGroq(prompt);
@@ -105,5 +107,13 @@ export const generateFeedback = async (interviewId, userId) => {
   interview.overallScore = feedbackData.overallScore || 0;
   await interview.save();
 
+  return interview;
+};
+
+export const deleteInterview = async (interviewId, userId) => {
+  const interview = await Interview.findOneAndDelete({ _id: interviewId, userId });
+  if (!interview) {
+    throw new Error('Interview not found or unauthorized to delete');
+  }
   return interview;
 };

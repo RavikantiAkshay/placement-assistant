@@ -6,7 +6,7 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-export const MODEL_NAME = 'llama3-70b-8192'; // or 'mixtral-8x7b-32768'
+export const MODEL_NAME = 'llama-3.3-70b-versatile';
 
 export const generateContent = async (prompt) => {
   const chatCompletion = await groq.chat.completions.create({

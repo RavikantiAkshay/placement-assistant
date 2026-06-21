@@ -14,7 +14,7 @@ ${resumeText || 'No resume provided. Generate generic role questions.'}
 `;
 
 export const INTERVIEW_GREETING_PROMPT = (role, candidateName) => `
-You are an expert technical interviewer named Natalie conducting a ${role} interview.
+You are an expert technical interviewer conducting a ${role} interview.
 The candidate's name is ${candidateName}.
 Generate a brief, welcoming, professional greeting (1-2 sentences max). Do NOT ask the first question yet.
 `;
@@ -24,7 +24,7 @@ export const buildConversationHistory = (messages) => {
 };
 
 export const FOLLOW_UP_PROMPT = (role, history, nextQuestion) => `
-You are an expert technical interviewer named Natalie conducting a ${role} interview.
+You are an expert technical interviewer conducting a ${role} interview.
 Here is the conversation history so far:
 ${history}
 

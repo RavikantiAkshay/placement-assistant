@@ -3,7 +3,6 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { getInterview, submitTextAnswer } from '../services/interview.service';
 import ConversationalMic from '../components/ConversationalMic';
 import NativeAudioPlayer from '../components/NativeAudioPlayer';
-import { Loader2 } from 'lucide-react';
 
 const LiveInterview = () => {
   const { id } = useParams();
@@ -12,24 +11,25 @@ const LiveInterview = () => {
 
   const [status, setStatus] = useState('loading'); // loading, speaking, listening, thinking, completed
   const [currentQuestionText, setCurrentQuestionText] = useState('');
+  const [userTranscript, setUserTranscript] = useState('');
   const [error, setError] = useState('');
+  const [interview, setInterview] = useState(null);
 
   useEffect(() => {
-    // If we just navigated from Setup, use the initial message immediately
-    if (location.state?.firstMessage) {
-      setCurrentQuestionText(location.state.firstMessage);
-      setStatus('speaking');
-    } else {
-      // Otherwise fetch from DB to resume
-      const fetchInterview = async () => {
-        try {
-          const data = await getInterview(id);
-          if (data.status === 'completed') {
-            setStatus('completed');
-            return;
-          }
-          // Resume from the last AI message
-          const aiMessages = data.messages.filter(m => m.role === 'ai');
+    const fetchInterview = async () => {
+      try {
+        const data = await getInterview(id);
+        setInterview(data);
+        if (data.status === 'completed') {
+          setStatus('completed');
+          return;
+        }
+
+        if (location.state?.firstMessage) {
+          setCurrentQuestionText(location.state.firstMessage);
+          setStatus('speaking');
+        } else {
+          const aiMessages = data.messages?.filter(m => m.role === 'ai') || [];
           const lastMessage = aiMessages[aiMessages.length - 1];
           if (lastMessage) {
             setCurrentQuestionText(lastMessage.content);
@@ -37,13 +37,13 @@ const LiveInterview = () => {
           } else {
             setStatus('listening');
           }
-        } catch (err) {
-          setError('Failed to load interview session.');
-          setStatus('error');
         }
-      };
-      fetchInterview();
-    }
+      } catch (err) {
+        setError('Failed to load interview session.');
+        setStatus('error');
+      }
+    };
+    fetchInterview();
   }, [id, location.state]);
 
   const handleAudioPlaybackEnded = () => {
@@ -55,91 +55,147 @@ const LiveInterview = () => {
   const handleAnswerSubmit = async (answerText) => {
     try {
       setStatus('thinking');
+      setUserTranscript('');
       const response = await submitTextAnswer(id, answerText);
       
       setCurrentQuestionText(response.aiResponse);
       
       if (response.isCompleted) {
-        setStatus('speaking'); // Speak the farewell message
+        setStatus('speaking');
         setTimeout(() => {
           setStatus('completed');
-          navigate('/history'); // Navigate to history/feedback after short delay
+          navigate('/history'); 
         }, 8000);
       } else {
-        setStatus('speaking'); // Speak the next question
+        setStatus('speaking'); 
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to submit answer.');
-      setStatus('listening'); // Let them try again
+      setError('Failed to submit answer. Please try again.');
+      setStatus('listening');
     }
   };
 
-  if (status === 'loading') {
+  const handleInterrupt = () => {
+    if (status === 'speaking') {
+      window.speechSynthesis.cancel();
+      setStatus('listening');
+    }
+  };
+
+  if (status === 'loading' || !interview) {
     return (
-      <div className="flex h-[calc(100vh-73px)] items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-indigo-600" />
+      <div className="flex h-[calc(100vh-73px)] items-center justify-center bg-background">
+        <div className="text-on-surface-variant font-medium text-lg flex items-center gap-3">
+           <span className="material-symbols-outlined animate-spin text-primary">sync</span>
+           Connecting to session...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto w-full px-6 py-12 flex flex-col items-center">
-      
-      {/* Header */}
-      <div className="w-full flex justify-between items-center mb-8 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className={`w-3 h-3 rounded-full ${status === 'speaking' ? 'bg-green-500 animate-pulse' : status === 'listening' ? 'bg-red-500 animate-pulse' : 'bg-yellow-500'}`}></div>
-          <span className="text-sm font-semibold text-gray-700 capitalize">Status: {status}</span>
-        </div>
-        <button 
-          onClick={() => navigate('/history')}
-          className="text-sm text-gray-500 hover:text-gray-800"
-        >
-          Pause / Exit
-        </button>
-      </div>
+    <div className="bg-background text-on-background h-[calc(100vh-73px)] flex flex-col overflow-hidden font-body-md antialiased w-full relative">
 
       {error && (
-        <div className="w-full bg-red-50 text-red-600 p-4 rounded-lg mb-6 border border-red-200">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-error-container text-on-error-container px-6 py-3 rounded-xl border border-error shadow-lg">
           {error}
         </div>
       )}
 
-      {/* AI Interviewer UI */}
-      <div className="flex flex-col items-center mb-12">
-        <div className={`relative w-48 h-48 rounded-full overflow-hidden border-4 transition-all duration-300 ${status === 'speaking' ? 'border-green-400 shadow-[0_0_30px_rgba(74,222,128,0.4)]' : 'border-gray-200'}`}>
-          {/* Avatar Placeholder: using a stylized UI avatar or user provided one */}
-          <img 
-            src="https://ui-avatars.com/api/?name=Natalie+AI&background=0058be&color=fff&size=200" 
-            alt="Natalie AI"
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <h3 className="mt-4 text-xl font-bold text-gray-900">Natalie</h3>
-        <p className="text-sm text-gray-500">AI Technical Interviewer</p>
-      </div>
-
-      {/* Captions / Current Question text */}
-      <div className="w-full max-w-2xl bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-12 min-h-[100px] flex items-center justify-center text-center">
-        {status === 'thinking' ? (
-          <div className="flex items-center gap-2 text-indigo-600">
-            <Loader2 size={20} className="animate-spin" />
-            <span className="font-medium">Natalie is thinking...</span>
+      <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-6 gap-6 flex flex-col h-full overflow-hidden">
+        
+        {/* TOP: Transcript / Question Area (Full Width) */}
+        <div className="bg-surface border border-outline-variant rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] shrink-0 flex flex-col relative transition-all min-h-[120px] max-h-[35%] overflow-y-auto w-full custom-scrollbar">
+          {status === 'thinking' && (
+            <div className="absolute top-0 left-0 w-full h-1 bg-surface-tint animate-pulse"></div>
+          )}
+          {(status === 'speaking' || status === 'listening') && (
+            <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
+          )}
+          
+          <div className="flex items-center gap-2 mb-3 border-b border-outline-variant pb-2 shrink-0">
+            <span className={`material-symbols-outlined ${userTranscript ? 'text-error animate-pulse' : 'text-primary'} text-[20px]`}>
+              {userTranscript ? 'mic' : 'forum'}
+            </span>
+            <h2 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">
+              {userTranscript ? 'Your Answer (Live Transcript)' : 'Current Question'}
+            </h2>
           </div>
-        ) : (
-          <p className="text-lg text-gray-800 font-medium leading-relaxed">
-            {currentQuestionText || "Listening..."}
+          <p className={`font-body-lg text-body-lg ${userTranscript ? 'text-on-surface italic' : 'text-on-surface'} leading-relaxed`}>
+            {userTranscript ? `"${userTranscript}"` : `"${currentQuestionText}"`}
           </p>
-        )}
-      </div>
+        </div>
 
-      {/* Mic Input */}
-      <div className="w-full flex justify-center">
-        <ConversationalMic 
-          disabled={status !== 'listening'} 
-          onAnswerSubmit={handleAnswerSubmit} 
-        />
-      </div>
+        {/* BOTTOM: Split layout */}
+        <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden w-full">
+          
+          {/* Left Column: AI Coach & Interaction */}
+          <section className="w-full md:w-5/12 lg:w-4/12 flex flex-col gap-5 h-full">
+            
+            {/* AI Video Interface (Reduced Size) */}
+            <div className={`relative w-96 max-w-full aspect-[4/3] mx-auto rounded-2xl overflow-hidden shadow-sm border-2 transition-all duration-300 ${status === 'speaking' ? 'border-primary shadow-[0_0_20px_rgba(0,88,190,0.3)]' : 'border-outline-variant bg-surface-container-low'} shrink-0 group`}>
+              <img 
+                alt="AI Avatar" 
+                className={`w-full h-full object-cover transition-transform duration-[3s] ${status === 'speaking' ? 'scale-105' : 'scale-100'}`} 
+                src="/ai-avatar.jpg" 
+              />
+              
+              {status === 'thinking' && (
+                <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] flex items-center justify-center">
+                  <span className="material-symbols-outlined text-white text-3xl animate-spin">sync</span>
+                </div>
+              )}
+            </div>
+            
+            {/* Recording Controls */}
+            <ConversationalMic 
+              disabled={status !== 'listening'} 
+              status={status}
+              onAnswerSubmit={handleAnswerSubmit} 
+              onTranscriptChange={setUserTranscript}
+              onInterrupt={handleInterrupt}
+            />
+
+          </section>
+          
+          {/* Right Column: Code Editor (Inactive State) */}
+          <section className="w-full md:w-7/12 lg:w-8/12 h-full bg-surface border border-outline-variant rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] flex flex-col overflow-hidden hidden md:flex">
+            {/* Editor Header Tabs */}
+            <div className="flex items-center justify-between bg-surface-container-lowest border-b border-outline-variant px-4 h-12 shrink-0">
+              <div className="flex h-full">
+                <div className="h-full px-4 flex items-center gap-2 border-b-2 border-primary bg-surface font-label-sm text-label-sm text-primary cursor-pointer">
+                  <span className="material-symbols-outlined text-[16px]">code_blocks</span>
+                  solution.py
+                </div>
+              </div>
+              <button 
+                onClick={() => navigate('/history')}
+                className="flex items-center gap-2 px-3 py-1.5 border border-error/50 text-error rounded hover:bg-error-container hover:border-error transition-colors font-label-sm text-label-sm"
+              >
+                <span className="material-symbols-outlined text-[16px]">logout</span>
+                End Session
+              </button>
+            </div>
+            
+            {/* Editor Body - Empty State */}
+            <div className="flex-1 bg-[#FAFAFA] flex items-center justify-center font-mono text-body-sm relative group p-8 text-center">
+               <div className="flex flex-col items-center opacity-60">
+                  <span className="material-symbols-outlined text-5xl mb-4 text-on-surface-variant">code_off</span>
+                  <h3 className="font-label-md text-lg text-on-surface-variant mb-2">Code Editor Inactive</h3>
+                  <p className="text-on-surface-variant max-w-sm">This question is conversational and does not require writing code. Continue your discussion using the microphone.</p>
+               </div>
+            </div>
+            
+            {/* Editor Console/Output Footer */}
+            <div className="h-8 bg-surface-container-lowest border-t border-outline-variant px-4 flex items-center text-on-surface-variant font-label-sm text-label-sm shrink-0 justify-between">
+              <span>Python 3.10 environment (Sandboxed)</span>
+              <div className="flex items-center gap-4">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-outline-variant"></span> System Idle</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
 
       {/* Native TTS Headless Player */}
       <NativeAudioPlayer 
@@ -147,7 +203,6 @@ const LiveInterview = () => {
         autoPlay={status === 'speaking'}
         onEnded={handleAudioPlaybackEnded}
       />
-
     </div>
   );
 };
