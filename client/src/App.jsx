@@ -7,10 +7,8 @@ import LiveInterview from './pages/LiveInterview';
 import Dashboard from './pages/Dashboard';
 import History from './pages/History';
 import Feedback from './pages/Feedback';
-
-// Placeholder Pages
-const Login = () => <div className="p-8">Login Page</div>;
-const Register = () => <div className="p-8">Register Page</div>;
+import Login from './pages/Login';
+import Register from './pages/Register';
 
 function App() {
   return (
