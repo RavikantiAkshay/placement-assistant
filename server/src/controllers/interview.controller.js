@@ -44,3 +44,21 @@ export const submitTextAnswer = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getAllInterviews = async (req, res, next) => {
+  try {
+    const interviews = await interviewService.getInterviews(req.user._id);
+    res.json({ success: true, data: interviews });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getFeedback = async (req, res, next) => {
+  try {
+    const interview = await interviewService.generateFeedback(req.params.id, req.user._id);
+    res.json({ success: true, data: interview });
+  } catch (error) {
+    next(error);
+  }
+};

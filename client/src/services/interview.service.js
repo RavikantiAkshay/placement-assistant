@@ -27,3 +27,13 @@ export const submitTextAnswer = async (id, answer) => {
   const response = await API.post(`/interview/${id}/answer`, { answer });
   return response.data.data;
 };
+
+export const getAllInterviews = async () => {
+  const response = await API.get('/interview');
+  return response.data.data;
+};
+
+export const getFeedback = async (id) => {
+  const response = await API.get(`/interview/${id}/feedback`);
+  return response.data.data;
+};

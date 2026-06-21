@@ -35,3 +35,26 @@ The candidate just answered your previous question.
 
 NEXT QUESTION: ${nextQuestion || "That concludes our questions. Thank you for your time!"}
 `;
+
+export const GENERATE_FEEDBACK_PROMPT = (role, difficulty, history) => `
+You are an expert technical interviewer. The following is a transcript of a ${role} interview at ${difficulty} difficulty.
+Analyze the candidate's answers and generate a comprehensive feedback report.
+
+RETURN ONLY A RAW JSON OBJECT with the following structure. Do NOT wrap in markdown or add explanations.
+{
+  "overallScore": 85, // out of 100
+  "strengths": ["Clear communication", "Good understanding of React hooks"],
+  "areasForImprovement": ["Needs to elaborate more on system design", "Should speak louder"],
+  "detailedFeedback": [
+    {
+      "question": "Tell me about yourself.",
+      "candidateAnswer": "I am a web developer...",
+      "feedback": "Good intro, but could focus more on recent projects.",
+      "score": 8 // out of 10
+    }
+  ]
+}
+
+TRANSCRIPT:
+${history}
+`;

@@ -4,12 +4,13 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import InterviewSetup from './pages/InterviewSetup';
 import LiveInterview from './pages/LiveInterview';
+import Dashboard from './pages/Dashboard';
+import History from './pages/History';
+import Feedback from './pages/Feedback';
 
 // Placeholder Pages
-const Dashboard = () => <div className="p-8">Dashboard Content</div>;
 const Login = () => <div className="p-8">Login Page</div>;
 const Register = () => <div className="p-8">Register Page</div>;
-const History = () => <div className="p-8">Interview History</div>;
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/setup" element={<ProtectedRoute><InterviewSetup /></ProtectedRoute>} />
           <Route path="/interview/:id" element={<ProtectedRoute><LiveInterview /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+          <Route path="/feedback/:id" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
           
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

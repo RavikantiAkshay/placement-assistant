@@ -83,3 +83,27 @@ export const submitAnswer = async (interviewId, userId, answerText) => {
 
   return { aiResponse, isCompleted: false, currentQuestion: interview.currentQuestion };
 };
+
+export const getInterviews = async (userId) => {
+  return await Interview.find({ userId }).sort({ createdAt: -1 });
+};
+
+export const generateFeedback = async (interviewId, userId) => {
+  const interview = await getInterviewById(interviewId, userId);
+  
+  if (interview.feedback) {
+    return interview; // Already generated
+  }
+
+  const historyString = buildConversationHistory(interview.messages);
+  const prompt = GENERATE_FEEDBACK_PROMPT(interview.role, interview.difficulty, historyString);
+  
+  const aiResponse = await askGroq(prompt);
+  const feedbackData = parseGroqJSON(aiResponse);
+
+  interview.feedback = feedbackData;
+  interview.overallScore = feedbackData.overallScore || 0;
+  await interview.save();
+
+  return interview;
+};
