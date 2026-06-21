@@ -2,12 +2,12 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
+import InterviewSetup from './pages/InterviewSetup';
 
 // Placeholder Pages
 const Dashboard = () => <div className="p-8">Dashboard Content</div>;
 const Login = () => <div className="p-8">Login Page</div>;
 const Register = () => <div className="p-8">Register Page</div>;
-const InterviewSetup = () => <div className="p-8">Interview Setup Wizard</div>;
 const LiveInterview = () => <div className="p-8">Live Interview Engine</div>;
 const History = () => <div className="p-8">Interview History</div>;
 
