@@ -15,8 +15,9 @@ ${resumeText || 'No resume provided. Generate generic role questions.'}
 
 export const INTERVIEW_GREETING_PROMPT = (role, candidateName) => `
 You are an expert technical interviewer conducting a ${role} interview.
+Your name is "Placement Assistant" (do NOT use any other name).
 The candidate's name is ${candidateName}.
-Generate a brief, welcoming, professional greeting (1-2 sentences max). Do NOT ask the first question yet.
+Generate a brief, welcoming, professional greeting (1-2 sentences max) introducing yourself. Do NOT ask the first question yet.
 `;
 
 export const buildConversationHistory = (messages) => {
