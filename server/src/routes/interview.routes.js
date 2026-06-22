@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { startInterview, getInterview, submitTextAnswer, getAllInterviews, getFeedback, deleteInterview, transcribeAudioEndpoint } from '../controllers/interview.controller.js';
+import { startInterview, getInterview, submitTextAnswer, getAllInterviews, getFeedback, deleteInterview, transcribeAudioEndpoint, endSession } from '../controllers/interview.controller.js';
 import authenticate from '../middleware/auth.middleware.js';
 import multer from 'multer';
 import os from 'os';
@@ -15,6 +15,7 @@ router.post('/transcribe', upload.single('audio'), transcribeAudioEndpoint);
 router.get('/:id', getInterview);
 router.delete('/:id', deleteInterview);
 router.post('/:id/answer', submitTextAnswer);
+router.post('/:id/end', endSession);
 router.get('/:id/feedback', getFeedback);
 
 export default router;

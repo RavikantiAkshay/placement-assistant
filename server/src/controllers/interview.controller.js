@@ -48,6 +48,15 @@ export const submitTextAnswer = async (req, res, next) => {
   }
 };
 
+export const endSession = async (req, res, next) => {
+  try {
+    const result = await interviewService.endInterviewEarly(req.params.id, req.user._id);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getAllInterviews = async (req, res, next) => {
   try {
     const interviews = await interviewService.getInterviews(req.user._id);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { getInterview, submitTextAnswer, transcribeAudioFile } from '../services/interview.service';
+import { getInterview, submitTextAnswer, transcribeAudioFile, endInterviewSession } from '../services/interview.service';
 import ConversationalMic from '../components/ConversationalMic';
 import NativeAudioPlayer from '../components/NativeAudioPlayer';
 
@@ -59,7 +59,6 @@ const LiveInterview = () => {
       
       let finalTranscriptText = answerText;
       
-      // If we have an audio recording, use Groq Whisper for professional accuracy
       if (audioBlob) {
         setStatus('thinking');
         setCurrentQuestionText('Transcribing audio (Groq Whisper)...');
@@ -95,6 +94,19 @@ const LiveInterview = () => {
       }
     } catch (err) {
       setError('Failed to submit answer. Please try again.');
+      setStatus('listening');
+    }
+  };
+
+  const handleEndSession = async () => {
+    try {
+      setStatus('thinking');
+      setCurrentQuestionText('Ending session and generating your report...');
+      await endInterviewSession(id);
+      setStatus('completed');
+      navigate('/history');
+    } catch (err) {
+      setError('Failed to end session. Please try again.');
       setStatus('listening');
     }
   };
@@ -204,13 +216,22 @@ const LiveInterview = () => {
                   solution.py
                 </div>
               </div>
-              <button 
-                onClick={() => navigate('/history')}
-                className="flex items-center gap-2 px-3 py-1.5 border border-error/50 text-error rounded hover:bg-error-container hover:border-error transition-colors font-label-sm text-label-sm"
-              >
-                <span className="material-symbols-outlined text-[16px]">logout</span>
-                End Session
-              </button>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => navigate('/history')}
+                  className="flex items-center gap-2 px-3 py-1.5 border border-outline-variant text-on-surface-variant rounded hover:bg-surface-container transition-colors font-label-sm text-label-sm"
+                >
+                  <span className="material-symbols-outlined text-[16px]">pause</span>
+                  Pause Session
+                </button>
+                <button 
+                  onClick={handleEndSession}
+                  className="flex items-center gap-2 px-3 py-1.5 border border-error/50 text-error rounded hover:bg-error-container hover:border-error transition-colors font-label-sm text-label-sm"
+                >
+                  <span className="material-symbols-outlined text-[16px]">logout</span>
+                  End Session
+                </button>
+              </div>
             </div>
             
             {/* Editor Body - Empty State */}

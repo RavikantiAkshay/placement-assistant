@@ -29,6 +29,11 @@ export const submitTextAnswer = async (id, answer) => {
   return response.data.data;
 };
 
+export const endInterviewSession = async (id) => {
+  const response = await API.post(`/interview/${id}/end`);
+  return response.data.data;
+};
+
 export const getAllInterviews = async () => {
   const response = await API.get('/interview');
   return response.data.data;

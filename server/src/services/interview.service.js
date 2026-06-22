@@ -92,6 +92,21 @@ export const submitAnswer = async (interviewId, userId, answerText) => {
   return { aiResponse, isCompleted: false, currentQuestion: interview.currentQuestion };
 };
 
+export const endInterviewEarly = async (interviewId, userId) => {
+  const interview = await getInterviewById(interviewId, userId);
+  
+  if (interview.status === 'completed') {
+    return { aiResponse: "Session already ended.", isCompleted: true };
+  }
+
+  interview.status = 'completed';
+  const farewell = "You have chosen to end the interview early. Thank you for your time. Your feedback report is being generated based on your answers so far.";
+  interview.messages.push({ role: 'ai', content: farewell });
+  await interview.save();
+
+  return { aiResponse: farewell, isCompleted: true };
+};
+
 export const getInterviews = async (userId) => {
   return await Interview.find({ userId }).sort({ createdAt: -1 });
 };
