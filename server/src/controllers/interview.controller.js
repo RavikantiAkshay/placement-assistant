@@ -1,4 +1,5 @@
 import * as interviewService from '../services/interview.service.js';
+import User from '../models/User.model.js';
 
 export const startInterview = async (req, res, next) => {
   try {
@@ -8,12 +9,14 @@ export const startInterview = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Please select a role for the interview.' });
     }
 
+    const user = await User.findById(req.user._id);
+
     const result = await interviewService.startInterview(
       req.user._id,
       role,
       difficulty,
       resumeText,
-      req.user.name,
+      user?.name || 'Candidate',
       totalQuestions || 5
     );
 
@@ -68,6 +71,34 @@ export const deleteInterview = async (req, res, next) => {
     await interviewService.deleteInterview(req.params.id, req.user._id);
     res.json({ success: true, message: 'Interview deleted successfully' });
   } catch (error) {
+    next(error);
+  }
+};
+
+import { transcribeAudio as groqTranscribe } from '../services/groq.service.js';
+import fs from 'fs';
+
+export const transcribeAudioEndpoint = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No audio file uploaded' });
+    }
+    
+    // Call groq service
+    const transcript = await groqTranscribe(req.file.path);
+    
+    // Clean up temp file
+    try {
+      fs.unlinkSync(req.file.path);
+    } catch(e) {
+      console.warn("Failed to delete temp audio file:", e);
+    }
+    
+    res.json({ success: true, text: transcript });
+  } catch (error) {
+    if (req.file && req.file.path) {
+      try { fs.unlinkSync(req.file.path); } catch(e) {}
+    }
     next(error);
   }
 };

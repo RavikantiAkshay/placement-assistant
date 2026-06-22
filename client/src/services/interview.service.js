@@ -43,3 +43,12 @@ export const deleteInterview = async (id) => {
   const response = await API.delete(`/interview/${id}`);
   return response.data;
 };
+
+export const transcribeAudioFile = async (audioBlob) => {
+  const formData = new FormData();
+  formData.append('audio', audioBlob, 'recording.webm');
+  const response = await API.post(`/interview/transcribe`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data.text;
+};

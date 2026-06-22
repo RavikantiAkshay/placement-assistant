@@ -1,7 +1,13 @@
 import Interview from '../models/Interview.model.js';
 import { askGroq } from './groq.service.js';
 import { parseGroqJSON } from '../utils/prompts.utils.js';
-import { GENERATE_QUESTIONS_PROMPT, INTERVIEW_GREETING_PROMPT } from '../constants/prompts.js';
+import { 
+  GENERATE_QUESTIONS_PROMPT, 
+  INTERVIEW_GREETING_PROMPT, 
+  FOLLOW_UP_PROMPT, 
+  GENERATE_FEEDBACK_PROMPT, 
+  buildConversationHistory 
+} from '../constants/prompts.js';
 
 export const startInterview = async (userId, role, difficulty, resumeText, candidateName, totalQuestions = 5) => {
   // Removed daily limit constraint for development

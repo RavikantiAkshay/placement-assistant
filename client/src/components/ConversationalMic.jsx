@@ -3,98 +3,162 @@ import React, { useState, useEffect, useRef } from 'react';
 const ConversationalMic = ({ onAnswerSubmit, disabled, status, onTranscriptChange, onInterrupt }) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
+  
   const recognitionRef = useRef(null);
-  const silenceTimerRef = useRef(null);
-
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
   const finalTranscriptRef = useRef('');
-  const currentTranscriptRef = useRef('');
-  const stopListeningRef = useRef(null);
-
-  useEffect(() => {
+  const isListeningRef = useRef(false);
+  
+  const initRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       console.warn('Speech Recognition API not supported in this browser.');
-      return;
+      return null;
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = true;
+    // CRITICAL FIX: continuous = false forces Chrome to cleanly finalize text every time 
+    // the user pauses for breath. This prevents Chrome's buffer from growing too large and 
+    // completely freezing after 100 words. We simply restart the mic instantly in onend!
+    recognition.continuous = false;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
 
     recognition.onresult = (event) => {
       let interimTranscript = '';
-      
+      let newFinalChunk = '';
+
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         if (event.results[i].isFinal) {
-          finalTranscriptRef.current += event.results[i][0].transcript + ' ';
+          newFinalChunk += event.results[i][0].transcript + ' ';
         } else {
           interimTranscript += event.results[i][0].transcript;
         }
       }
-      
-      const newTranscript = finalTranscriptRef.current + interimTranscript;
-      setTranscript(newTranscript);
-      currentTranscriptRef.current = newTranscript;
-      
-      if (onTranscriptChange) {
-        onTranscriptChange(newTranscript);
+
+      if (newFinalChunk) {
+        finalTranscriptRef.current += newFinalChunk;
       }
 
-      // Auto-submit after 3 seconds of silence
-      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = setTimeout(() => {
-        if (stopListeningRef.current) {
-           stopListeningRef.current();
-        }
-      }, 3000);
+      const combined = finalTranscriptRef.current + interimTranscript;
+      setTranscript(combined);
+      
+      if (onTranscriptChange) {
+        onTranscriptChange(combined);
+      }
     };
 
     recognition.onerror = (event) => {
-      console.error('Speech recognition error', event.error);
-      if (stopListeningRef.current) stopListeningRef.current(true); 
+      // no-speech just means they were quiet, which is fine.
+      if (event.error !== 'no-speech') {
+        console.error('Speech recognition error:', event.error);
+      }
     };
 
     recognition.onend = () => {
-      if (stopListeningRef.current) {
-        stopListeningRef.current();
+      // Because continuous=false, this fires cleanly after every sentence/pause.
+      // We instantly spin up a fresh instance to keep listening!
+      if (isListeningRef.current) {
+        setTimeout(() => {
+          if (isListeningRef.current) {
+            recognitionRef.current = initRecognition();
+            try {
+              recognitionRef.current?.start();
+            } catch (e) {
+              console.warn("Could not restart mic chunk:", e);
+            }
+          }
+        }, 50); // 50ms instant restart
       }
     };
 
-    recognitionRef.current = recognition;
-
-    return () => {
-      if (recognitionRef.current) recognitionRef.current.stop();
-      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-    };
-  }, []);
-
-  const startListening = () => {
-    finalTranscriptRef.current = '';
-    currentTranscriptRef.current = '';
-    setTranscript('');
-    setIsListening(true);
-    if (onTranscriptChange) onTranscriptChange('');
-    recognitionRef.current?.start();
-  };
-
-  const stopListening = () => {
-    setIsListening(false);
-    recognitionRef.current?.stop();
-    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-    
-    setTimeout(() => {
-      const finalAnswer = currentTranscriptRef.current.trim();
-      if (finalAnswer) {
-        onAnswerSubmit(finalAnswer);
-      }
-      if (onTranscriptChange) onTranscriptChange('');
-    }, 500);
+    return recognition;
   };
 
   useEffect(() => {
-    stopListeningRef.current = stopListening;
-  });
+    return () => {
+      isListeningRef.current = false;
+      if (recognitionRef.current) {
+        recognitionRef.current.onend = null;
+        recognitionRef.current.stop();
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+        mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, []);
+
+  const startListening = async () => {
+    finalTranscriptRef.current = '';
+    setTranscript('');
+    isListeningRef.current = true;
+    setIsListening(true);
+    audioChunksRef.current = [];
+    
+    if (onTranscriptChange) onTranscriptChange('');
+    
+    if (recognitionRef.current) {
+        recognitionRef.current.onend = null;
+        recognitionRef.current.stop();
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      mediaRecorderRef.current.start();
+    } catch (err) {
+      console.error("Microphone access denied for recording:", err);
+    }
+
+    recognitionRef.current = initRecognition();
+    try {
+      recognitionRef.current?.start();
+    } catch(e) {
+      console.error("Start failed:", e);
+    }
+  };
+
+  const stopListening = () => {
+    isListeningRef.current = false;
+    setIsListening(false);
+    
+    if (recognitionRef.current) {
+      recognitionRef.current.onend = null;
+      recognitionRef.current.stop();
+    }
+
+    let audioBlob = null;
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.onstop = () => {
+        audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
+        
+        setTranscript((currentVal) => {
+          const finalAnswer = currentVal.trim();
+          onAnswerSubmit(finalAnswer, audioBlob);
+          return currentVal;
+        });
+      };
+      mediaRecorderRef.current.stop();
+    } else {
+      setTimeout(() => {
+        setTranscript((currentVal) => {
+          const finalAnswer = currentVal.trim();
+          if (finalAnswer) {
+            onAnswerSubmit(finalAnswer, null);
+          }
+          return currentVal;
+        });
+      }, 100);
+    }
+    
+    if (onTranscriptChange) onTranscriptChange('');
+  };
 
   const toggleListen = () => {
     if (isListening) stopListening();

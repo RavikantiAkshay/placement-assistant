@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { getInterview, submitTextAnswer } from '../services/interview.service';
+import { getInterview, submitTextAnswer, transcribeAudioFile } from '../services/interview.service';
 import ConversationalMic from '../components/ConversationalMic';
 import NativeAudioPlayer from '../components/NativeAudioPlayer';
 
@@ -14,6 +14,7 @@ const LiveInterview = () => {
   const [userTranscript, setUserTranscript] = useState('');
   const [error, setError] = useState('');
   const [interview, setInterview] = useState(null);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   useEffect(() => {
     const fetchInterview = async () => {
@@ -52,11 +53,34 @@ const LiveInterview = () => {
     }
   };
 
-  const handleAnswerSubmit = async (answerText) => {
+  const handleAnswerSubmit = async (answerText, audioBlob) => {
     try {
-      setStatus('thinking');
       setUserTranscript('');
-      const response = await submitTextAnswer(id, answerText);
+      
+      let finalTranscriptText = answerText;
+      
+      // If we have an audio recording, use Groq Whisper for professional accuracy
+      if (audioBlob) {
+        setStatus('thinking');
+        setCurrentQuestionText('Transcribing audio (Groq Whisper)...');
+        try {
+          const accurateText = await transcribeAudioFile(audioBlob);
+          if (accurateText && accurateText.trim().length > 0) {
+            finalTranscriptText = accurateText;
+          }
+        } catch (transcribeErr) {
+          console.error("Whisper transcription failed, falling back to browser text:", transcribeErr);
+        }
+      }
+
+      if (!finalTranscriptText) {
+         setStatus('listening');
+         return;
+      }
+
+      setStatus('thinking');
+      setCurrentQuestionText('Analyzing your answer...');
+      const response = await submitTextAnswer(id, finalTranscriptText);
       
       setCurrentQuestionText(response.aiResponse);
       
@@ -102,10 +126,22 @@ const LiveInterview = () => {
         </div>
       )}
 
+      {status === 'speaking' && !hasInteracted && (
+        <div className="absolute inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center">
+          <button 
+            onClick={() => setHasInteracted(true)}
+            className="px-8 py-4 bg-primary text-on-primary rounded-full shadow-xl hover:bg-surface-tint flex items-center gap-3 font-label-lg text-xl transition-transform hover:scale-105"
+          >
+            <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>play_circle</span>
+            Begin Interview
+          </button>
+        </div>
+      )}
+
       <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-6 gap-6 flex flex-col h-full overflow-hidden">
         
         {/* TOP: Transcript / Question Area (Full Width) */}
-        <div className="bg-surface border border-outline-variant rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] shrink-0 flex flex-col relative transition-all min-h-[120px] max-h-[35%] overflow-y-auto w-full custom-scrollbar">
+        <div className="bg-surface border border-outline-variant rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] shrink-0 flex flex-col relative transition-all min-h-[120px] max-h-[35vh] overflow-y-auto w-full custom-scrollbar">
           {status === 'thinking' && (
             <div className="absolute top-0 left-0 w-full h-1 bg-surface-tint animate-pulse"></div>
           )}
@@ -130,7 +166,7 @@ const LiveInterview = () => {
         <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden w-full">
           
           {/* Left Column: AI Coach & Interaction */}
-          <section className="w-full md:w-5/12 lg:w-4/12 flex flex-col gap-5 h-full">
+          <section className="w-full md:w-5/12 lg:w-4/12 flex flex-col gap-5 h-full overflow-y-auto custom-scrollbar pb-2">
             
             {/* AI Video Interface (Reduced Size) */}
             <div className={`relative w-96 max-w-full aspect-[4/3] mx-auto rounded-2xl overflow-hidden shadow-sm border-2 transition-all duration-300 ${status === 'speaking' ? 'border-primary shadow-[0_0_20px_rgba(0,88,190,0.3)]' : 'border-outline-variant bg-surface-container-low'} shrink-0 group`}>
@@ -199,8 +235,8 @@ const LiveInterview = () => {
 
       {/* Native TTS Headless Player */}
       <NativeAudioPlayer 
-        text={status === 'speaking' ? currentQuestionText : ''}
-        autoPlay={status === 'speaking'}
+        text={status === 'speaking' && hasInteracted ? currentQuestionText : ''}
+        autoPlay={status === 'speaking' && hasInteracted}
         onEnded={handleAudioPlaybackEnded}
       />
     </div>

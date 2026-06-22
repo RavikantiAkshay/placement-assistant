@@ -1,4 +1,5 @@
-import { generateContent } from '../config/groq.config.js';
+import { generateContent, groq } from '../config/groq.config.js';
+import fs from 'fs';
 
 export const askGroq = async (prompt) => {
   try {
@@ -10,5 +11,20 @@ export const askGroq = async (prompt) => {
   } catch (error) {
     console.error('Groq Service Error Details:', error);
     throw new Error('Failed to communicate with AI interviewer: ' + (error.message || 'Unknown error'));
+  }
+};
+
+export const transcribeAudio = async (filePath) => {
+  try {
+    const transcription = await groq.audio.transcriptions.create({
+      file: fs.createReadStream(filePath),
+      model: "whisper-large-v3",
+      response_format: "json",
+      language: "en"
+    });
+    return transcription.text;
+  } catch (error) {
+    console.error('Groq Transcription Error Details:', error);
+    throw new Error('Failed to transcribe audio: ' + (error.message || 'Unknown error'));
   }
 };
