@@ -35,6 +35,9 @@ const Navbar = () => {
             <Link to="/setup" className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isActive('/setup') ? 'bg-primary-container/20 text-primary' : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}`}>
               <Play size={18} /> New Interview
             </Link>
+            <Link to="/doubts" className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isActive('/doubts') ? 'bg-primary-container/20 text-primary' : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}`}>
+              <BrainCircuit size={18} /> Doubt Solver
+            </Link>
             <Link to="/history" className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isActive('/history') ? 'bg-primary-container/20 text-primary' : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}`}>
               <Clock size={18} /> History
             </Link>
