@@ -9,7 +9,6 @@ import History from './pages/History';
 import Feedback from './pages/Feedback';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import DoubtSolver from './pages/DoubtSolver';
 
 function App() {
   return (
@@ -26,7 +25,6 @@ function App() {
           <Route path="/interview/:id" element={<ProtectedRoute><LiveInterview /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
           <Route path="/feedback/:id" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
-          <Route path="/doubts" element={<ProtectedRoute><DoubtSolver /></ProtectedRoute>} />
           
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

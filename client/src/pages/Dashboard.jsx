@@ -51,14 +51,11 @@ const Dashboard = () => {
               Welcome to <span className="text-primary">Placement Assistant</span>
             </h1>
             <p className="text-lg text-on-surface-variant font-medium leading-relaxed mb-8 max-w-2xl">
-              Your AI-powered interview preparation and doubt solving platform. We bridge the gap between your resume and your dream job by simulating real-world technical interviews and providing instant, multi-modal doubt resolution.
+              Your AI-powered interview preparation platform. We bridge the gap between your resume and your dream job by simulating real-world technical interviews with advanced artificial intelligence.
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Link to="/setup" className="btn-primary py-3.5 px-8 font-bold shadow-lg shadow-primary/20 hover:-translate-y-1 transition-transform flex items-center gap-2">
                 <Play size={20} className="fill-current" /> Start New Interview
-              </Link>
-              <Link to="/doubts" className="btn-secondary border-primary/50 text-primary py-3.5 px-8 font-bold hover:bg-primary/5 transition-colors flex items-center gap-2">
-                <Brain size={20} /> Solve a Doubt
               </Link>
               <Link to="/history" className="btn-secondary py-3.5 px-8 font-bold hover:bg-surface-container-high transition-colors">
                 View Past Reports
@@ -71,23 +68,6 @@ const Dashboard = () => {
             <Brain size={80} className="text-primary relative z-10" />
           </div>
         </div>
-      </div>
-
-      {/* Doubt Solver Banner */}
-      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#00855b]/10 to-[#00855b]/5 p-8 lg:p-10 border border-[#00855b]/20 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="absolute right-0 top-0 w-64 h-64 bg-[#00855b]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
-        <div className="relative z-10 flex items-center gap-6">
-          <div className="w-16 h-16 rounded-2xl bg-[#00855b]/20 flex items-center justify-center text-[#00855b] shrink-0">
-             <Sparkles size={32} />
-          </div>
-          <div>
-            <h2 className="text-2xl lg:text-3xl font-extrabold text-on-surface mb-2">Stuck on a tough concept?</h2>
-            <p className="text-on-surface-variant font-medium max-w-xl">Ask a doubt using text, upload an image of a problem, or use your voice. Our AI coach will explain it step-by-step.</p>
-          </div>
-        </div>
-        <Link to="/doubts" className="btn-primary bg-[#00855b] hover:bg-[#00855b]/90 text-white py-3.5 px-8 font-bold whitespace-nowrap flex items-center gap-2 shrink-0 relative z-10 shadow-lg shadow-[#00855b]/20 hover:-translate-y-1 transition-transform">
-          <Brain size={20} /> Launch AI Coach
-        </Link>
       </div>
 
       {/* Stats Grid */}
