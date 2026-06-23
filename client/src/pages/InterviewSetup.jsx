@@ -9,12 +9,15 @@ const ROLES = [
   { id: 'fullstack', label: 'Full Stack', icon: Code },
   { id: 'data_scientist', label: 'Data Science', icon: ChartBar },
   { id: 'product_manager', label: 'Product Mgr', icon: Briefcase },
+  { id: 'custom', label: 'Custom', icon: Settings2 },
 ];
 
 const InterviewSetup = () => {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState('');
+  const [customRole, setCustomRole] = useState('');
   const [difficulty, setDifficulty] = useState('mid');
+  const [duration, setDuration] = useState('15');
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
@@ -23,6 +26,10 @@ const InterviewSetup = () => {
   const handleNext = () => {
     if (step === 1 && !role) {
       setError('Please select a target role to proceed.');
+      return;
+    }
+    if (step === 1 && role === 'custom' && !customRole.trim()) {
+      setError('Please enter your custom role to proceed.');
       return;
     }
     setError('');
@@ -51,8 +58,10 @@ const InterviewSetup = () => {
       
       const resumeData = await uploadResume(file);
       const extractedText = resumeData.text;
+      const finalRole = role === 'custom' ? customRole.trim() : role;
+      const questionsCount = Math.max(2, Math.round(parseInt(duration) / 3)); // Approx 3 mins per question
 
-      const interviewData = await startInterview(role, difficulty, extractedText, 5);
+      const interviewData = await startInterview(finalRole, difficulty, extractedText, questionsCount);
       
       navigate(`/interview/${interviewData.interviewId}`, { 
         state: { firstMessage: interviewData.firstMessage } 
@@ -151,6 +160,40 @@ const InterviewSetup = () => {
                       </button>
                     )
                   })}
+                </div>
+                {role === 'custom' && (
+                  <div className="mt-4 animate-in fade-in slide-in-from-top-2">
+                    <input 
+                      type="text" 
+                      placeholder="e.g., iOS Developer, Machine Learning Engineer..." 
+                      className="w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-primary transition-colors text-on-surface"
+                      value={customRole}
+                      onChange={(e) => setCustomRole(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <label className="text-sm font-extrabold text-on-surface uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]"></span> Interview Duration
+                </label>
+                <div className="grid grid-cols-4 gap-3">
+                  {['5', '10', '15', '30'].map((mins) => (
+                    <label key={mins} className="cursor-pointer group">
+                      <input 
+                        type="radio" 
+                        name="duration" 
+                        value={mins} 
+                        className="peer sr-only"
+                        checked={duration === mins}
+                        onChange={(e) => setDuration(e.target.value)}
+                      />
+                      <div className="border border-outline-variant/50 rounded-xl p-3.5 text-center transition-all duration-200 peer-checked:border-[#3b82f6] peer-checked:bg-[#3b82f6]/5 peer-checked:text-[#3b82f6] hover:border-[#3b82f6]/40 hover:bg-surface-container/50 bg-surface-container-lowest/50 shadow-sm peer-checked:shadow-md peer-checked:shadow-[#3b82f6]/5">
+                        <span className="block text-sm font-bold capitalize">{mins} min</span>
+                      </div>
+                    </label>
+                  ))}
                 </div>
               </div>
 
