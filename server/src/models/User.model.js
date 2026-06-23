@@ -4,7 +4,12 @@ import bcrypt from 'bcryptjs';
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
+  password: { type: String, required: true },
+  goals: {
+    targetRole: { type: String, default: 'Software Engineer' },
+    targetScore: { type: Number, default: 80 },
+    targetDate: { type: Date, default: () => new Date(new Date().setMonth(new Date().getMonth() + 1)) }
+  }
 }, { timestamps: true });
 
 userSchema.pre('save', async function () {

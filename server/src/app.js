@@ -17,5 +17,6 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api', routes);
+app.use('/uploads', express.static('uploads'));
 
 export default app;

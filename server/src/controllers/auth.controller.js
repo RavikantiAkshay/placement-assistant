@@ -46,3 +46,19 @@ export const getMe = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateGoals = async (req, res, next) => {
+  try {
+    const { targetRole, targetScore, targetDate } = req.body;
+    const user = await User.findById(req.user._id).select('-password');
+    
+    if (targetRole) user.goals.targetRole = targetRole;
+    if (targetScore) user.goals.targetScore = targetScore;
+    if (targetDate) user.goals.targetDate = targetDate;
+    
+    await user.save();
+    res.json({ success: true, user });
+  } catch (error) {
+    next(error);
+  }
+};

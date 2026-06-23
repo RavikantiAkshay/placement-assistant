@@ -50,8 +50,16 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const updateGoals = async (goals) => {
+    const data = await authService.updateGoals(goals);
+    if (data.success) {
+      setUser(data.user);
+    }
+    return data;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateGoals }}>
       {children}
     </AuthContext.Provider>
   );
