@@ -17,11 +17,19 @@ An open-source, full-stack AI platform that conducts **real-time conversational 
 ### 📝 Resume-Driven Questions
 - **Dynamic Question Generation** — Automatically parses your uploaded PDF resume to generate tailored, hyper-specific technical and behavioral questions based on your actual experience and projects.
 - **Role & Difficulty Selection** — Fully customizable interview configurations (e.g., Frontend Engineer at "Hard" difficulty).
+- **Custom Interview Parameters** — Choose exactly how long the interview should last (5 to 30 minutes) and define custom target roles if the presets don't match your exact niche.
 
 ### 📊 Comprehensive Analytics
 - **Holistic Scoring** — Generates a 0-100 overall score, hireability score, and a predicted role-fit percentage.
 - **Granular Metrics** — Detailed breakdown of Communication (WPM, clarity, conciseness), Technical (depth of knowledge, best practices), and Behavioral (confidence, STAR method adherence) metrics.
 - **Feedback per Question** — Individualized feedback for every question asked, highlighting your strongest and weakest statements, along with a suggested "perfect" answer.
+- **Global Dashboard Statistics** — High-density dashboard featuring a 6-month activity heatmap, longitudinal topic mastery tracking, and historical performance metrics.
+- **Resume Skill Coverage** — Cross-references your parsed resume against your target role to display a Match Rate percentage, alongside visually separated validated skills and missing requirements.
+- **Practice Queue & Weak Topics** — Automatically catalogs your weak areas from past interviews into an actionable practice queue.
+
+### 💡 Intelligent Doubt Solver
+- **Context-Aware Assistance** — Dedicated doubt-solving chat interface that retains interview history and helps clarify complex topics or misunderstood questions in real time.
+- **Image Support** — Upload screenshots of code or errors for the AI to analyze and provide visual-context-aware explanations.
 
 ### 🔒 Platform & Security
 - **Google OAuth Integration** — Sign in effortlessly with Google.
@@ -208,6 +216,13 @@ Visit **[http://localhost:5173](http://localhost:5173)** in your browser and sta
 | POST | `/api/interview/:id/answer` | Submit text answer & get AI follow-up |
 | POST | `/api/interview/:id/end` | Terminate session early & trigger grading |
 | GET | `/api/interview/:id/feedback` | Fetch finalized analytics report |
+
+### Doubt Solver
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/doubt` | Submit a text doubt with an optional image attachment |
+| GET | `/api/doubt` | Retrieve full doubt chat history |
+| GET | `/api/doubt/:id` | Fetch a specific doubt thread |
 
 ---
 
