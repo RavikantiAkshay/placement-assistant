@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Home, Play, Clock, BrainCircuit } from 'lucide-react';
+import { LogOut, Home, Play, Clock, BrainCircuit, MessageSquare } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -34,6 +34,9 @@ const Navbar = () => {
             </Link>
             <Link to="/setup" className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isActive('/setup') ? 'bg-primary-container/20 text-primary' : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}`}>
               <Play size={18} /> New Interview
+            </Link>
+            <Link to="/doubts/new" className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isActive('/doubts/new') || isActive('/doubts') ? 'bg-blue-50 text-blue-600' : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}`}>
+              <MessageSquare size={18} /> Doubt Solver
             </Link>
             <Link to="/history" className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isActive('/history') ? 'bg-primary-container/20 text-primary' : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'}`}>
               <Clock size={18} /> History

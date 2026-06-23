@@ -9,12 +9,16 @@ import History from './pages/History';
 import Feedback from './pages/Feedback';
 import Login from './pages/Login';
 import Register from './pages/Register';
-
+import DoubtChat from './pages/DoubtChat';
+import { useLocation } from 'react-router-dom';
 function App() {
+  const location = useLocation();
+  const isDoubtChat = location.pathname.startsWith('/doubts');
+
   return (
     <div className="min-h-screen bg-surface flex flex-col">
-      <Navbar />
-      <main className="flex-1">
+      {!isDoubtChat && <Navbar />}
+      <main className="flex-1 flex flex-col h-full">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -25,6 +29,7 @@ function App() {
           <Route path="/interview/:id" element={<ProtectedRoute><LiveInterview /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
           <Route path="/feedback/:id" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+          <Route path="/doubts/:id" element={<ProtectedRoute><DoubtChat /></ProtectedRoute>} />
           
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
