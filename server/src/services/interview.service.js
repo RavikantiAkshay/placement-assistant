@@ -56,7 +56,7 @@ export const getInterviewById = async (interviewId, userId) => {
   return interview;
 };
 
-export const submitAnswer = async (interviewId, userId, answerText) => {
+export const submitAnswer = async (interviewId, userId, answerText, timeSpentSeconds) => {
   const interview = await getInterviewById(interviewId, userId);
   
   if (interview.status === 'completed') {
@@ -64,7 +64,7 @@ export const submitAnswer = async (interviewId, userId, answerText) => {
   }
 
   // 1. Add candidate's answer to history
-  interview.messages.push({ role: 'candidate', content: answerText });
+  interview.messages.push({ role: 'candidate', content: answerText, timeSpentSeconds });
 
   // 2. Check if we reached the end
   let nextQuestion = '';

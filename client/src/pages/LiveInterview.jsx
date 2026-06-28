@@ -3,6 +3,7 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { getInterview, submitTextAnswer, transcribeAudioFile, endInterviewSession } from '../services/interview.service';
 import ConversationalMic from '../components/ConversationalMic';
 import NativeAudioPlayer from '../components/NativeAudioPlayer';
+import CodeEditor from '../components/CodeEditor';
 
 const LiveInterview = () => {
   const { id } = useParams();
@@ -15,6 +16,17 @@ const LiveInterview = () => {
   const [error, setError] = useState('');
   const [interview, setInterview] = useState(null);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [questionStartTime, setQuestionStartTime] = useState(null);
+  const [processingMessage, setProcessingMessage] = useState('');
+
+  const isCodingQuestion = currentQuestionText?.includes('[CODING]');
+  const displayQuestionText = currentQuestionText?.replace(/\[CODING\]\s*/g, '') || '';
+
+  useEffect(() => {
+    if (status === 'listening') {
+      setQuestionStartTime(Date.now());
+    }
+  }, [status]);
 
   useEffect(() => {
     const fetchInterview = async () => {
@@ -61,7 +73,7 @@ const LiveInterview = () => {
       
       if (audioBlob) {
         setStatus('thinking');
-        setCurrentQuestionText('Transcribing audio (Groq Whisper)...');
+        setProcessingMessage('Transcribing audio (Groq Whisper)...');
         try {
           const accurateText = await transcribeAudioFile(audioBlob);
           if (accurateText && accurateText.trim().length > 0) {
@@ -77,9 +89,11 @@ const LiveInterview = () => {
          return;
       }
 
+      const timeSpentSeconds = questionStartTime ? Math.round((Date.now() - questionStartTime) / 1000) : 0;
+
       setStatus('thinking');
-      setCurrentQuestionText('Analyzing your answer...');
-      const response = await submitTextAnswer(id, finalTranscriptText);
+      setProcessingMessage('Analyzing your answer...');
+      const response = await submitTextAnswer(id, finalTranscriptText, timeSpentSeconds);
       
       setCurrentQuestionText(response.aiResponse);
       
@@ -170,7 +184,7 @@ const LiveInterview = () => {
             </h2>
           </div>
           <p className={`font-body-lg text-body-lg ${userTranscript ? 'text-on-surface italic' : 'text-on-surface'} leading-relaxed`}>
-            {userTranscript ? `"${userTranscript}"` : `"${currentQuestionText}"`}
+            {userTranscript ? `"${userTranscript}"` : `"${displayQuestionText}"`}
           </p>
         </div>
 
@@ -189,8 +203,9 @@ const LiveInterview = () => {
               />
               
               {status === 'thinking' && (
-                <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2">
                   <span className="material-symbols-outlined text-white text-3xl animate-spin">sync</span>
+                  <span className="text-white text-xs font-semibold px-4 text-center">{processingMessage}</span>
                 </div>
               )}
             </div>
@@ -204,59 +219,70 @@ const LiveInterview = () => {
               onInterrupt={handleInterrupt}
             />
 
+            {/* Session Controls */}
+            <div className="flex gap-3 justify-center mt-2">
+              <button 
+                onClick={() => navigate('/history')}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border border-outline-variant text-on-surface-variant rounded-xl hover:bg-surface-container transition-colors font-label-md text-sm font-semibold"
+              >
+                <span className="material-symbols-outlined text-[18px]">pause</span>
+                Pause Session
+              </button>
+              <button 
+                onClick={handleEndSession}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border border-error/50 text-error rounded-xl hover:bg-error-container hover:border-error transition-colors font-label-md text-sm font-semibold"
+              >
+                <span className="material-symbols-outlined text-[18px]">logout</span>
+                End Session
+              </button>
+            </div>
+
           </section>
           
-          {/* Right Column: Code Editor (Inactive State) */}
+          {/* Right Column: Code Editor */}
           <section className="w-full md:w-7/12 lg:w-8/12 h-full bg-surface border border-outline-variant rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] flex flex-col overflow-hidden hidden md:flex">
-            {/* Editor Header Tabs */}
-            <div className="flex items-center justify-between bg-surface-container-lowest border-b border-outline-variant px-4 h-12 shrink-0">
-              <div className="flex h-full">
-                <div className="h-full px-4 flex items-center gap-2 border-b-2 border-primary bg-surface font-label-sm text-label-sm text-primary cursor-pointer">
-                  <span className="material-symbols-outlined text-[16px]">code_blocks</span>
-                  solution.py
+            {isCodingQuestion ? (
+              <CodeEditor 
+                onSubmit={(codeText) => handleAnswerSubmit(codeText, null)}
+                isSubmitting={status === 'thinking'}
+              />
+            ) : (
+              <>
+                {/* Editor Header Tabs */}
+                <div className="flex items-center justify-between bg-surface-container-lowest border-b border-outline-variant px-4 h-12 shrink-0">
+                  <div className="flex h-full">
+                    <div className="h-full px-4 flex items-center gap-2 border-b-2 border-primary bg-surface font-label-sm text-label-sm text-primary cursor-pointer">
+                      <span className="material-symbols-outlined text-[16px]">code_blocks</span>
+                      solution.py
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => navigate('/history')}
-                  className="flex items-center gap-2 px-3 py-1.5 border border-outline-variant text-on-surface-variant rounded hover:bg-surface-container transition-colors font-label-sm text-label-sm"
-                >
-                  <span className="material-symbols-outlined text-[16px]">pause</span>
-                  Pause Session
-                </button>
-                <button 
-                  onClick={handleEndSession}
-                  className="flex items-center gap-2 px-3 py-1.5 border border-error/50 text-error rounded hover:bg-error-container hover:border-error transition-colors font-label-sm text-label-sm"
-                >
-                  <span className="material-symbols-outlined text-[16px]">logout</span>
-                  End Session
-                </button>
-              </div>
-            </div>
-            
-            {/* Editor Body - Empty State */}
-            <div className="flex-1 bg-[#FAFAFA] flex items-center justify-center font-mono text-body-sm relative group p-8 text-center">
-               <div className="flex flex-col items-center opacity-60">
-                  <span className="material-symbols-outlined text-5xl mb-4 text-on-surface-variant">code_off</span>
-                  <h3 className="font-label-md text-lg text-on-surface-variant mb-2">Code Editor Inactive</h3>
-                  <p className="text-on-surface-variant max-w-sm">This question is conversational and does not require writing code. Continue your discussion using the microphone.</p>
-               </div>
-            </div>
-            
-            {/* Editor Console/Output Footer */}
-            <div className="h-8 bg-surface-container-lowest border-t border-outline-variant px-4 flex items-center text-on-surface-variant font-label-sm text-label-sm shrink-0 justify-between">
-              <span>Python 3.10 environment (Sandboxed)</span>
-              <div className="flex items-center gap-4">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-outline-variant"></span> System Idle</span>
-              </div>
-            </div>
+                
+                {/* Editor Body - Empty State */}
+                <div className="flex-1 bg-[#FAFAFA] flex items-center justify-center font-mono text-body-sm relative group p-8 text-center">
+                   <div className="flex flex-col items-center opacity-60">
+                      <span className="material-symbols-outlined text-5xl mb-4 text-on-surface-variant">code_off</span>
+                      <h3 className="font-label-md text-lg text-on-surface-variant mb-2">Code Editor Inactive</h3>
+                      <p className="text-on-surface-variant max-w-sm">This question is conversational and does not require writing code. Continue your discussion using the microphone.</p>
+                   </div>
+                </div>
+                
+                {/* Editor Console/Output Footer */}
+                <div className="h-8 bg-surface-container-lowest border-t border-outline-variant px-4 flex items-center text-on-surface-variant font-label-sm text-label-sm shrink-0 justify-between">
+                  <span>Python 3.10 environment (Sandboxed)</span>
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-outline-variant"></span> System Idle</span>
+                  </div>
+                </div>
+              </>
+            )}
           </section>
         </div>
       </main>
 
       {/* Native TTS Headless Player */}
       <NativeAudioPlayer 
-        text={status === 'speaking' && hasInteracted ? currentQuestionText : ''}
+        text={status === 'speaking' && hasInteracted ? displayQuestionText : ''}
         autoPlay={status === 'speaking' && hasInteracted}
         onEnded={handleAudioPlaybackEnded}
       />

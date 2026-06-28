@@ -4,6 +4,7 @@ const messageSchema = new mongoose.Schema({
   role: { type: String, enum: ['ai', 'candidate'], required: true },
   content: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
+  timeSpentSeconds: { type: Number },
 });
 
 const interviewSchema = new mongoose.Schema(

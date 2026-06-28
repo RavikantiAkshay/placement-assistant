@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 const NativeAudioPlayer = ({ text, onEnded, autoPlay }) => {
   const utteranceRef = useRef(null);
   const [voicesLoaded, setVoicesLoaded] = useState(false);
+  const spokenTextRef = useRef('');
 
   // Ensure voices are loaded (some browsers load them asynchronously)
   useEffect(() => {
@@ -22,7 +23,19 @@ const NativeAudioPlayer = ({ text, onEnded, autoPlay }) => {
   }, []);
 
   useEffect(() => {
-    if (!text || !autoPlay) return;
+    if (!text || !autoPlay) {
+      if (!text) {
+        spokenTextRef.current = '';
+      }
+      return;
+    }
+
+    // Prevent duplicate speech synthesis triggers
+    if (spokenTextRef.current === text) {
+      return;
+    }
+
+    spokenTextRef.current = text;
 
     // Clean text to sound more conversational and less like "reading"
     const cleanText = text

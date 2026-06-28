@@ -1,17 +1,33 @@
-export const GENERATE_QUESTIONS_PROMPT = (role, difficulty, resumeText, totalQuestions) => `
-You are an expert technical interviewer conducting a ${role} interview at ${difficulty} difficulty.
+export const GENERATE_QUESTIONS_PROMPT = (role, difficulty, resumeText, totalQuestions) => {
+  const diffLabel = difficulty === 'junior' ? 'Junior (Entry Level, 0-2 years experience)'
+                  : difficulty === 'senior' ? 'Senior (Lead/Architect, 6+ years experience)'
+                  : 'Mid-Level (Developer, 3-5 years experience)';
+                  
+  const codingDifficultyInstructions = 
+    difficulty === 'junior' 
+      ? 'The coding question should be basic (e.g., simple array/string manipulation, basic sorting, or simple logic functions).'
+      : difficulty === 'senior'
+      ? 'The coding question should be advanced and design-focused (e.g., cache algorithms, memory optimization, graph traversal, concurrency, or advanced algorithmic optimization).'
+      : 'The coding question should be of moderate difficulty (e.g., binary search, recursion, matrix manipulation, or tree traversal).';
+
+  return `
+You are an expert technical interviewer conducting a ${role} interview at the ${diffLabel} level.
 Analyze the candidate's resume below and generate exactly ${totalQuestions - 1} interview questions.
 The FIRST question "Tell me about yourself" is already added — do NOT include it.
 
 RULES:
 1. Generate a realistic interview flow like real-world interviews:
    - 1-2 behavioral questions (based on their experience, projects, and past roles from resume)
-   - Remaining questions should be technical knowledge questions (specific to the ${role} role at ${difficulty} difficulty)
+   - EXACTLY ONE of the remaining questions MUST be a coding question. This coding question must require the candidate to write code (implement a function, solve an algorithmic puzzle, or fix code bugs) relevant to the ${role} role, using an appropriate programming language based on their resume context.
+     * DIFFICULTY ALIGNMENT: ${codingDifficultyInstructions}
+     * You MUST start the coding question text with the tag "[CODING] " (e.g., "[CODING] Write a function in JavaScript to check if a string is a palindrome...").
+   - Remaining questions should be technical conceptual or system design questions (specific to the ${role} role at ${diffLabel} level).
 2. RETURN ONLY A RAW JSON ARRAY of strings. Do NOT wrap in markdown or add explanations.
 
 RESUME TEXT:
 ${resumeText || 'No resume provided. Generate generic role questions.'}
 `;
+};
 
 export const INTERVIEW_GREETING_PROMPT = (role, candidateName) => `
 You are an expert technical interviewer conducting a ${role} interview.
@@ -21,7 +37,10 @@ Generate a brief, welcoming, professional greeting (1-2 sentences max) introduci
 `;
 
 export const buildConversationHistory = (messages) => {
-  return messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
+  return messages.map(m => {
+    const timeSpentString = m.role === 'candidate' && m.timeSpentSeconds ? ` (Time spent responding: ${m.timeSpentSeconds} seconds)` : '';
+    return `${m.role.toUpperCase()}: ${m.content}${timeSpentString}`;
+  }).join('\n');
 };
 
 export const FOLLOW_UP_PROMPT = (role, history, nextQuestion) => `
@@ -43,6 +62,12 @@ NEXT QUESTION: ${nextQuestion || "That concludes our questions. Thank you for yo
 export const GENERATE_FEEDBACK_PROMPT = (role, difficulty, history) => `
 You are an expert technical interviewer and hiring manager. The following is a transcript of a ${role} interview at ${difficulty} difficulty.
 Analyze the candidate's answers and generate a highly detailed, professional-grade analytics report.
+
+CRITICAL INSTRUCTION FOR TIME/SPEED ANALYSIS:
+Each candidate response includes a tag indicating the time they spent responding (e.g., "(Time spent responding: X seconds)"). 
+Evaluate their speed and efficiency relative to the complexity of the question:
+- If they answered a simple coding question or conceptual question too slowly (e.g. taking minutes for basic code), penalize their technical/problem solving score accordingly, and mention this as an area of improvement (e.g. "Candidate took X seconds/minutes to write/answer Y, which indicates slow typing, slow thinking, or hesitation").
+- If their response speed was optimal and fast, highlight it as a strength.
 
 RETURN ONLY A RAW JSON OBJECT with the following structure. Do NOT wrap in markdown or add explanations.
 {

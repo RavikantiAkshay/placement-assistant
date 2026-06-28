@@ -24,8 +24,8 @@ export const getInterview = async (id) => {
   return response.data.data;
 };
 
-export const submitTextAnswer = async (id, answer) => {
-  const response = await API.post(`/interview/${id}/answer`, { answer });
+export const submitTextAnswer = async (id, answer, timeSpentSeconds) => {
+  const response = await API.post(`/interview/${id}/answer`, { answer, timeSpentSeconds });
   return response.data.data;
 };
 
