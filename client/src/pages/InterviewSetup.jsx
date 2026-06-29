@@ -19,6 +19,8 @@ const InterviewSetup = () => {
   const [difficulty, setDifficulty] = useState('mid');
   const [duration, setDuration] = useState('15');
   const [file, setFile] = useState(null);
+  const [useManualText, setUseManualText] = useState(false);
+  const [manualResumeText, setManualResumeText] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -47,8 +49,12 @@ const InterviewSetup = () => {
   };
 
   const handleStart = async () => {
-    if (!file) {
+    if (!useManualText && !file) {
       setError('Please upload your resume to continue.');
+      return;
+    }
+    if (useManualText && !manualResumeText.trim()) {
+      setError('Please paste your resume text to continue.');
       return;
     }
 
@@ -56,8 +62,14 @@ const InterviewSetup = () => {
       setIsUploading(true);
       setError('');
       
-      const resumeData = await uploadResume(file);
-      const extractedText = resumeData.text;
+      let extractedText = '';
+      if (useManualText) {
+        extractedText = manualResumeText.trim();
+      } else {
+        const resumeData = await uploadResume(file);
+        extractedText = resumeData.text;
+      }
+      
       const finalRole = role === 'custom' ? customRole.trim() : role;
       const questionsCount = Math.max(2, Math.round(parseInt(duration) / 3)); // Approx 3 mins per question
 
@@ -68,7 +80,13 @@ const InterviewSetup = () => {
       });
 
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to start interview. Please try again.');
+      const errorMsg = err.response?.data?.message;
+      if (errorMsg?.includes('Could not extract text')) {
+        setUseManualText(true);
+        setError('PDF extraction failed (scanned or complex layout). Please paste your resume text manually below.');
+      } else {
+        setError(errorMsg || 'Failed to start interview. Please try again.');
+      }
       setIsUploading(false);
     }
   };
@@ -237,26 +255,55 @@ const InterviewSetup = () => {
                 </label>
                 <p className="text-sm text-on-surface-variant font-medium mb-4">We extract your experience to ask highly contextual questions during the interview.</p>
                 
-                <label className="border-2 border-dashed border-outline-variant rounded-[2rem] p-12 bg-surface-container-lowest/50 backdrop-blur-sm flex flex-col items-center justify-center gap-5 transition-all duration-300 hover:border-primary hover:bg-primary-container/5 cursor-pointer group shadow-inner">
-                  <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary-container/20 transition-all duration-300 shadow-sm">
-                    <UploadCloud size={36} />
+                {useManualText ? (
+                  <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                    <textarea 
+                      value={manualResumeText}
+                      onChange={(e) => setManualResumeText(e.target.value)}
+                      placeholder="Paste your resume content, experience, and skills here..."
+                      className="w-full h-48 bg-surface-container-lowest border border-outline-variant/50 rounded-2xl p-5 text-sm focus:outline-none focus:border-primary custom-scrollbar text-on-surface leading-relaxed shadow-inner"
+                    />
+                    <div className="flex justify-end">
+                      <button 
+                        onClick={() => { setUseManualText(false); setError(''); }} 
+                        className="text-sm font-bold text-primary hover:underline"
+                      >
+                        Try uploading PDF instead
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-center space-y-2">
-                    <p className="text-lg font-bold text-on-surface">
-                      {file ? file.name : "Drag & Drop your resume here"}
-                    </p>
-                    <p className="text-sm text-on-surface-variant">
-                      or <span className="text-primary font-bold group-hover:underline">browse files</span>
-                    </p>
-                    {!file && <p className="text-xs text-on-surface-variant/70 font-bold uppercase tracking-wider mt-4">PDF format • Max 5MB</p>}
+                ) : (
+                  <div className="space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                    <label className="border-2 border-dashed border-outline-variant rounded-[2rem] p-12 bg-surface-container-lowest/50 backdrop-blur-sm flex flex-col items-center justify-center gap-5 transition-all duration-300 hover:border-primary hover:bg-primary-container/5 cursor-pointer group shadow-inner">
+                      <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary-container/20 transition-all duration-300 shadow-sm">
+                        <UploadCloud size={36} />
+                      </div>
+                      <div className="text-center space-y-2">
+                        <p className="text-lg font-bold text-on-surface">
+                          {file ? file.name : "Drag & Drop your resume here"}
+                        </p>
+                        <p className="text-sm text-on-surface-variant">
+                          or <span className="text-primary font-bold group-hover:underline">browse files</span>
+                        </p>
+                        {!file && <p className="text-xs text-on-surface-variant/70 font-bold uppercase tracking-wider mt-4">PDF format • Max 5MB</p>}
+                      </div>
+                      <input 
+                        type="file" 
+                        accept="application/pdf" 
+                        className="hidden" 
+                        onChange={handleFileChange}
+                      />
+                    </label>
+                    <div className="text-center mt-4">
+                      <button 
+                        onClick={() => { setUseManualText(true); setError(''); }} 
+                        className="text-xs font-bold text-on-surface-variant hover:text-primary hover:underline transition-colors"
+                      >
+                        PDF Extraction Failing? Paste manually instead
+                      </button>
+                    </div>
                   </div>
-                  <input 
-                    type="file" 
-                    accept="application/pdf" 
-                    className="hidden" 
-                    onChange={handleFileChange}
-                  />
-                </label>
+                )}
               </div>
 
               <div className="flex flex-col-reverse sm:flex-row justify-between gap-4 pt-8 mt-4 border-t border-outline-variant/30">
@@ -269,8 +316,8 @@ const InterviewSetup = () => {
                 </button>
                 <button 
                   onClick={handleStart}
-                  disabled={isUploading || !file}
-                  className={`btn-primary py-3.5 px-8 font-bold flex justify-center items-center gap-2 ${!file && !isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={isUploading || (!useManualText && !file) || (useManualText && !manualResumeText.trim())}
+                  className={`btn-primary py-3.5 px-8 font-bold flex justify-center items-center gap-2 ${((!useManualText && !file) || (useManualText && !manualResumeText.trim())) && !isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {isUploading ? (
                     <><Loader2 size={20} className="animate-spin" /> Preparing Agent...</>
