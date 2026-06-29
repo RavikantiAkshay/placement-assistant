@@ -82,8 +82,9 @@ const CodeEditor = ({ onSubmit, isSubmitting }) => {
     setIsRunning(true);
     setConsoleOutput('Running code...\n');
     setTimeout(() => {
-      // Mock code execution
-      setConsoleOutput(prev => prev + `[Success] Code compilation completed successfully!\nAll local tests passed.\nOutput: Execution finished in 0.04s.`);
+      // Mock code execution to prevent Remote Code Execution (RCE) risks
+      // Note: Real execution would require isolated Docker containers.
+      setConsoleOutput(prev => prev + `[Safe Simulation Mode]\nCode compilation simulated successfully.\nAll local tests passed.\nOutput: Execution finished in 0.04s.\n\n(Note: True remote code execution is disabled for security reasons to prevent RCE risks. Please submit your solution for AI review.)`);
       setIsRunning(false);
     }, 1500);
   };
