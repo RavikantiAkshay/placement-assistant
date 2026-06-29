@@ -2,7 +2,10 @@ import User from '../models/User.model.js';
 import jwt from 'jsonwebtoken';
 
 const generateToken = (userId) => {
-  return jwt.sign({ _id: userId }, process.env.JWT_SECRET || 'fallback_secret', { expiresIn: '7d' });
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not defined in environment variables');
+  }
+  return jwt.sign({ _id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
 export const register = async (req, res, next) => {
