@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getFeedback } from '../services/interview.service';
 import { 
   ArrowLeft, CheckCircle2, AlertTriangle, TrendingUp, BrainCircuit, 
@@ -12,6 +12,12 @@ const Feedback = () => {
   const [feedbackData, setFeedbackData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleGenerateQuiz = (topic) => {
+    const prompt = `I noticed I have a weakness in "${topic}". Can you provide a tailored reading list or a 5-question micro-quiz to help me immediately patch this knowledge gap?`;
+    navigate('/doubts/new', { state: { initialPrompt: prompt, subject: 'Software Engineering' } });
+  };
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -267,6 +273,35 @@ const Feedback = () => {
           </div>
         )}
       </div>
+
+      {/* Actionable Weaknesses / Areas for Improvement */}
+      {areasForImprovement && areasForImprovement.length > 0 && (
+        <div className="glass-card p-6 lg:p-8 mb-12 border-t-4 border-t-error/80 bg-error-container/5 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+            <Zap size={100} className="text-error" />
+          </div>
+          <h3 className="text-2xl font-bold text-error flex items-center gap-3 mb-3 relative z-10">
+            <AlertTriangle size={28} /> Areas for Improvement
+          </h3>
+          <p className="text-on-surface-variant mb-6 font-medium relative z-10 max-w-2xl">
+            Click on any weakness below to instantly generate a tailored reading list or a 5-question micro-quiz using the Doubt Solver engine.
+          </p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
+            {areasForImprovement.map((area, idx) => (
+              <button 
+                key={idx} 
+                onClick={() => handleGenerateQuiz(area)}
+                className="text-left bg-surface-container-lowest border border-error/20 p-4 rounded-xl hover:border-error hover:bg-error-container/20 transition-all duration-300 shadow-sm hover:shadow-md flex flex-col justify-between group/btn"
+              >
+                <span className="font-bold text-on-surface mb-3 line-clamp-3 leading-relaxed">{area}</span>
+                <span className="text-xs font-bold text-error uppercase tracking-wider flex items-center gap-1 group-hover/btn:gap-2 transition-all">
+                  Fix this gap <ArrowLeft className="w-3 h-3 rotate-180" />
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* IMPROVEMENT PLAN */}
       {sevenDayImprovementPlan && sevenDayImprovementPlan.length > 0 && (

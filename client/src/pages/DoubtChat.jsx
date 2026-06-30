@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useContext, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, MoreVertical, Plus, CheckCircle2, XCircle, Lightbulb, Zap, Menu, PanelLeft } from 'lucide-react';
 import { ChatContext } from '../context/ChatContext';
 import MessageBubble from '../components/Doubt/MessageBubble';
@@ -8,9 +8,11 @@ import InputArea from '../components/Doubt/InputArea';
 export default function DoubtChat() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { chats, activeChat, sendingMessage, selectChat, createNewChat } = useContext(ChatContext);
+  const location = useLocation();
+  const { chats, activeChat, sendingMessage, selectChat, createNewChat, askText } = useContext(ChatContext);
   const messagesEndRef = useRef(null);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [initialPromptSent, setInitialPromptSent] = useState(false);
 
   useEffect(() => {
     if (id && id !== 'new') {
@@ -19,6 +21,18 @@ export default function DoubtChat() {
       createNewChat();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (location.state?.initialPrompt && !initialPromptSent && id === 'new') {
+      askText(null, location.state.initialPrompt, location.state.subject || 'Interview Feedback');
+      setInitialPromptSent(true);
+      
+      // Clean up location state so a refresh doesn't trigger it again
+      const newState = { ...location.state };
+      delete newState.initialPrompt;
+      window.history.replaceState(newState, '');
+    }
+  }, [location.state, id, initialPromptSent, askText]);
 
   useEffect(() => {
     // Auto-scroll to bottom
