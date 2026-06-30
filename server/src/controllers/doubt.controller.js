@@ -99,3 +99,13 @@ export const getDoubtById = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const deleteDoubt = async (req, res) => {
+  try {
+    const doubt = await Doubt.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
+    if (!doubt) return res.status(404).json({ message: 'Doubt not found' });
+    res.json({ message: 'Doubt chat deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

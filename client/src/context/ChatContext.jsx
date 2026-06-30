@@ -56,9 +56,11 @@ export const ChatProvider = ({ children }) => {
       const res = await createOrUpdateDoubt({ chatId, question, subject, type: 'text' });
       setActiveChat(res.data);
       if (!chatId) loadChats();
+      return res.data._id; // Return the ID so we can navigate to it
     } catch (err) {
       console.error(err);
       toast.error('Failed to send message');
+      return null;
     } finally {
       setSendingMessage(false);
     }
@@ -81,9 +83,11 @@ export const ChatProvider = ({ children }) => {
       const res = await createOrUpdateDoubt(formData);
       setActiveChat(res.data);
       if (!chatId) loadChats();
+      return res.data._id;
     } catch (err) {
       console.error(err);
       toast.error('Failed to send image');
+      return null;
     } finally {
       setSendingMessage(false);
     }
@@ -106,18 +110,40 @@ export const ChatProvider = ({ children }) => {
       const res = await createOrUpdateDoubt(formData);
       setActiveChat(res.data);
       if (!chatId) loadChats();
+      return res.data._id;
     } catch (err) {
       console.error(err);
       toast.error('Failed to send voice message');
+      return null;
     } finally {
       setSendingMessage(false);
+    }
+  };
+
+  const deleteChat = async (id) => {
+    try {
+      // Optimistic update
+      setChats(prev => prev.filter(c => c._id !== id));
+      if (activeChat?._id === id) setActiveChat(null);
+      
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/doubts/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      toast.success('Chat deleted');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to delete chat');
+      loadChats(); // Revert on failure
     }
   };
 
   return (
     <ChatContext.Provider value={{
       chats, activeChat, setActiveChat, loadingChats, sendingMessage,
-      loadChats, selectChat, createNewChat,
+      loadChats, selectChat, createNewChat, deleteChat,
       askText, askImage, askVoice
     }}>
       {children}

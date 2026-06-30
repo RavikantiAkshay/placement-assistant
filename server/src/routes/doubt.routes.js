@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createOrUpdateDoubt, getDoubts, getDoubtById } from '../controllers/doubt.controller.js';
+import { createOrUpdateDoubt, getDoubts, getDoubtById, deleteDoubt } from '../controllers/doubt.controller.js';
 import authenticate from '../middleware/auth.middleware.js';
 import multer from 'multer';
 import path from 'path';
@@ -28,5 +28,6 @@ router.use(authenticate);
 router.post('/', upload.single('file'), createOrUpdateDoubt);
 router.get('/', getDoubts);
 router.get('/:id', getDoubtById);
+router.delete('/:id', deleteDoubt);
 
 export default router;

@@ -9,10 +9,13 @@ export default function DoubtChat() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { chats, activeChat, sendingMessage, selectChat, createNewChat, askText } = useContext(ChatContext);
+  const { chats, activeChat, sendingMessage, selectChat, createNewChat, askText, deleteChat } = useContext(ChatContext);
   const messagesEndRef = useRef(null);
   const [showSidebar, setShowSidebar] = useState(true);
-  const [initialPromptSent, setInitialPromptSent] = useState(false);
+  
+  // Use a ref to strictly prevent double firing in React StrictMode
+  const initialPromptSentRef = useRef(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     if (id && id !== 'new') {
@@ -23,16 +26,20 @@ export default function DoubtChat() {
   }, [id]);
 
   useEffect(() => {
-    if (location.state?.initialPrompt && !initialPromptSent && id === 'new') {
-      askText(null, location.state.initialPrompt, location.state.subject || 'Interview Feedback');
-      setInitialPromptSent(true);
+    if (location.state?.initialPrompt && !initialPromptSentRef.current && id === 'new') {
+      initialPromptSentRef.current = true;
+      askText(null, location.state.initialPrompt, location.state.subject || 'Interview Feedback').then((newChatId) => {
+        if (newChatId) {
+           navigate(`/doubts/${newChatId}`, { replace: true });
+        }
+      });
       
       // Clean up location state so a refresh doesn't trigger it again
       const newState = { ...location.state };
       delete newState.initialPrompt;
       window.history.replaceState(newState, '');
     }
-  }, [location.state, id, initialPromptSent, askText]);
+  }, [location.state, id, askText, navigate]);
 
   useEffect(() => {
     // Auto-scroll to bottom
@@ -129,10 +136,33 @@ export default function DoubtChat() {
             </button>
             <h1 className="text-lg font-semibold text-gray-900 truncate max-w-[200px] md:max-w-md">{activeChat?.title || 'New Session'}</h1>
           </div>
-          <div className="flex items-center">
-            <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-600">
-              <MoreVertical className="w-5 h-5" />
-            </button>
+          <div className="flex items-center relative">
+            {activeChat && (
+              <>
+                <button 
+                  onClick={() => setShowMenu(!showMenu)}
+                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
+                >
+                  <MoreVertical className="w-5 h-5" />
+                </button>
+                {showMenu && (
+                  <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+                    <button 
+                      onClick={() => {
+                        setShowMenu(false);
+                        if (window.confirm('Are you sure you want to delete this chat session?')) {
+                          deleteChat(activeChat._id);
+                          navigate('/doubts/new');
+                        }
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                    >
+                      <XCircle size={16} /> Delete Chat
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </header>
 
