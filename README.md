@@ -25,11 +25,12 @@ An open-source, full-stack AI platform that conducts **real-time conversational 
 - **Feedback per Question** — Individualized feedback for every question asked, highlighting your strongest and weakest statements, along with a suggested "perfect" answer.
 - **Global Dashboard Statistics** — High-density dashboard featuring a 6-month activity heatmap, longitudinal topic mastery tracking, and historical performance metrics.
 - **Resume Skill Coverage** — Cross-references your parsed resume against your target role to display a Match Rate percentage, alongside visually separated validated skills and missing requirements.
-- **Practice Queue & Weak Topics** — Automatically catalogs your weak areas from past interviews into an actionable practice queue.
+- **Interactive Practice Queue** — Automatically catalogs your weak areas from past interviews into an actionable, checkable practice queue to track your learning progress.
 
 ### 💡 Intelligent Doubt Solver
 - **Context-Aware Assistance** — Dedicated doubt-solving chat interface that retains interview history and helps clarify complex topics or misunderstood questions in real time.
-- **Image Support** — Upload screenshots of code or errors for the AI to analyze and provide visual-context-aware explanations.
+- **Image & Voice Support** — Upload screenshots of code/errors or use the microphone for the AI to analyze and provide visual/audio-context-aware explanations.
+- **Session Management** — Full control over your history with the ability to delete past chats, and a built-in 5-minute session countdown for focused problem-solving.
 
 ### 🔒 Platform & Security
 - **Google OAuth Integration** — Sign in effortlessly with Google.
