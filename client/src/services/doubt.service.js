@@ -12,3 +12,7 @@ export const fetchDoubts = () => {
 export const fetchDoubtById = (id) => {
   return API.get(`/doubts/${id}`);
 };
+
+export const deleteDoubtAPI = (id) => {
+  return API.delete(`/doubts/${id}`);
+};

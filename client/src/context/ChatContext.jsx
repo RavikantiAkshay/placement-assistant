@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { createOrUpdateDoubt, fetchDoubts, fetchDoubtById } from '../services/doubt.service';
+import { createOrUpdateDoubt, fetchDoubts, fetchDoubtById, deleteDoubtAPI } from '../services/doubt.service';
 import toast from 'react-hot-toast';
 
 export const ChatContext = createContext(null);
@@ -126,12 +126,7 @@ export const ChatProvider = ({ children }) => {
       setChats(prev => prev.filter(c => c._id !== id));
       if (activeChat?._id === id) setActiveChat(null);
       
-      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/doubts/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      await deleteDoubtAPI(id);
       toast.success('Chat deleted');
     } catch (err) {
       console.error(err);
