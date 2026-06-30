@@ -79,7 +79,7 @@ export default function VoiceInput({ onRecorded, onCancel, disabled }) {
           {status === 'recording' && <span className="w-2 h-2 rounded-full bg-error animate-pulse"></span>}
           {status === 'recording' ? 'Recording Doubt...' : status === 'stopped' ? 'Recording Ready' : 'Ready to Record'}
         </span>
-        <button onClick={onCancel} className="text-outline hover:text-on-surface transition-colors">
+        <button onClick={onCancel} className="text-outline hover:text-on-surface transition-colors" aria-label="Cancel">
           <X className="w-5 h-5" />
         </button>
       </div>
@@ -89,6 +89,7 @@ export default function VoiceInput({ onRecorded, onCancel, disabled }) {
           onClick={startRecording}
           disabled={disabled}
           className="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center hover:bg-primary-container hover:text-on-primary-container transition-transform hover:scale-105"
+          aria-label="Start Recording"
         >
           <Mic className="w-8 h-8" />
         </button>
@@ -102,6 +103,7 @@ export default function VoiceInput({ onRecorded, onCancel, disabled }) {
           <button 
             onClick={stopRecording}
             className="w-12 h-12 rounded-full bg-error text-on-error flex items-center justify-center hover:opacity-90 transition-all"
+            aria-label="Stop Recording"
           >
             <Square className="w-5 h-5" fill="currentColor" />
           </button>

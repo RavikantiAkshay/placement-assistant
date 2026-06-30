@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { ChatContext } from '../context/ChatContext';
 import { useContext } from 'react';
 import { ActivityCalendar } from 'react-activity-calendar';
-import { Play, Target, Zap, Activity, Brain, FileText, Mic, LineChart, Code, ShieldCheck, Sparkles, Trash2, Camera, MessageSquare, History as HistoryIcon, BarChart, CalendarDays } from 'lucide-react';
+import { Play, Target, Zap, Activity, Brain, FileText, Mic, LineChart, Code, ShieldCheck, Sparkles, Trash2, Camera, MessageSquare, History as HistoryIcon, BarChart, CalendarDays, Check } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -117,14 +117,22 @@ const Dashboard = () => {
   const matchScore = totalSkills > 0 ? Math.round((foundSkills.length / totalSkills) * 100) : 0;
 
   // Practice Queue State
-  const [practiceQueue, setPracticeQueue] = useState(['System Design', 'React Performance', 'CI/CD Pipelines']);
+  const [practiceQueue, setPracticeQueue] = useState([
+    { id: 1, text: 'System Design', completed: false },
+    { id: 2, text: 'React Performance', completed: false },
+    { id: 3, text: 'CI/CD Pipelines', completed: false }
+  ]);
   const [newTopic, setNewTopic] = useState('');
 
   const handleAddTopic = (e) => {
     if (e.key === 'Enter' && newTopic.trim() !== '') {
-      setPracticeQueue([...practiceQueue, newTopic.trim()]);
+      setPracticeQueue([...practiceQueue, { id: Date.now(), text: newTopic.trim(), completed: false }]);
       setNewTopic('');
     }
+  };
+
+  const toggleTopic = (id) => {
+    setPracticeQueue(practiceQueue.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   };
 
   // Topic Mastery Map
@@ -540,11 +548,13 @@ const Dashboard = () => {
                 <Target size={18} className="text-blue-500"/> Practice Queue
               </h2>
               <div className="flex flex-col gap-2 flex-1">
-                {practiceQueue.map((topic, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-surface-container border border-outline-variant/30 group">
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-md border-2 border-outline-variant/50 group-hover:border-primary transition-colors cursor-pointer flex items-center justify-center"></div>
-                      <span className="font-bold text-sm text-on-surface">{topic}</span>
+                {practiceQueue.map((topic) => (
+                  <div key={topic.id} className="flex items-center justify-between p-3 rounded-xl bg-surface-container border border-outline-variant/30 group">
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => toggleTopic(topic.id)}>
+                      <div className={`w-5 h-5 rounded-md border-2 transition-colors flex items-center justify-center ${topic.completed ? 'bg-primary border-primary' : 'border-outline-variant/50 group-hover:border-primary'}`}>
+                        {topic.completed && <Check size={14} className="text-white" strokeWidth={3} />}
+                      </div>
+                      <span className={`font-bold text-sm text-on-surface ${topic.completed ? 'line-through opacity-50' : ''}`}>{topic.text}</span>
                     </div>
                   </div>
                 ))}

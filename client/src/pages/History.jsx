@@ -35,9 +35,25 @@ const History = () => {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-73px)] items-center justify-center flex-col gap-4">
-        <Loader2 size={40} className="animate-spin text-primary" />
-        <p className="text-on-surface-variant font-medium">Loading history...</p>
+      <div className="max-w-5xl mx-auto w-full px-6 py-12">
+        <div className="mb-10">
+          <div className="h-8 bg-surface-container rounded-lg animate-pulse w-48 mb-4"></div>
+          <div className="h-4 bg-surface-container rounded-lg animate-pulse w-96"></div>
+        </div>
+        <div className="grid gap-5">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="glass-card p-6 h-32 flex items-center justify-between">
+              <div className="flex gap-4 items-center">
+                <div className="w-14 h-14 bg-surface-container rounded-2xl animate-pulse"></div>
+                <div className="space-y-3">
+                  <div className="h-6 w-32 bg-surface-container rounded-lg animate-pulse"></div>
+                  <div className="h-4 w-48 bg-surface-container rounded-lg animate-pulse"></div>
+                </div>
+              </div>
+              <div className="w-24 h-10 bg-surface-container rounded-lg animate-pulse"></div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -111,6 +127,7 @@ const History = () => {
                     onClick={() => handleDelete(interview._id)}
                     className="p-3 text-outline-variant hover:text-error hover:bg-error/10 rounded-xl transition-colors"
                     title="Delete Interview"
+                    aria-label="Delete Interview"
                   >
                     <Trash2 size={20} />
                   </button>

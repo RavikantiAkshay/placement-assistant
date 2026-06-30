@@ -136,6 +136,7 @@ export default function InputArea({ subject: initialSubject, disabled }) {
               <button 
                 onClick={removeImage}
                 className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                aria-label="Remove Image"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -161,6 +162,7 @@ export default function InputArea({ subject: initialSubject, disabled }) {
               onClick={() => fileInputRef.current?.click()}
               className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
               title="Attach Image"
+              aria-label="Attach Image"
             >
               <ImageIcon className="w-5 h-5" />
             </button>
@@ -168,6 +170,7 @@ export default function InputArea({ subject: initialSubject, disabled }) {
               onClick={() => setIsVoiceMode(true)}
               className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"
               title="Voice Input"
+              aria-label="Voice Input"
             >
               <Mic className="w-5 h-5" />
             </button>
@@ -191,6 +194,7 @@ export default function InputArea({ subject: initialSubject, disabled }) {
               onClick={handleSend}
               disabled={disabled || (!text.trim() && !imageFile)}
               className="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 shadow-sm transition-all transform hover:scale-105"
+              aria-label="Send Message"
             >
               {disabled ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </button>

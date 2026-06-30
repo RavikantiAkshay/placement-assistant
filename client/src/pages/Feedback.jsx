@@ -35,12 +35,24 @@ const Feedback = () => {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-73px)] items-center justify-center flex-col gap-5">
-        <div className="w-20 h-20 bg-primary-container/20 rounded-2xl flex items-center justify-center text-primary animate-pulse">
-          <BrainCircuit size={40} />
+      <div className="max-w-[1400px] mx-auto w-full px-4 md:px-8 py-10 pb-24 animate-pulse">
+        <div className="w-32 h-4 bg-surface-container rounded mb-8"></div>
+        <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-12 pb-10 border-b border-outline-variant/30">
+          <div className="flex-1 space-y-4">
+            <div className="w-48 h-6 bg-surface-container rounded-full"></div>
+            <div className="w-64 h-12 bg-surface-container rounded-lg"></div>
+            <div className="w-48 h-6 bg-surface-container rounded"></div>
+          </div>
+          <div className="flex gap-4">
+            <div className="w-40 h-24 bg-surface-container rounded-xl"></div>
+            <div className="w-40 h-24 bg-surface-container rounded-xl"></div>
+          </div>
         </div>
-        <p className="text-on-surface-variant font-medium text-xl">Generating Advanced Analytics Report...</p>
-        <p className="text-sm text-on-surface-variant/70">Evaluating technical depth, pacing, and behavioral traits.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-64 bg-surface-container rounded-xl"></div>
+          ))}
+        </div>
       </div>
     );
   }

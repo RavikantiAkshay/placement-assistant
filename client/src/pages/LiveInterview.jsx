@@ -134,11 +134,29 @@ const LiveInterview = () => {
 
   if (status === 'loading' || !interview) {
     return (
-      <div className="flex h-[calc(100vh-73px)] items-center justify-center bg-background">
-        <div className="text-on-surface-variant font-medium text-lg flex items-center gap-3">
-           <span className="material-symbols-outlined animate-spin text-primary">sync</span>
-           Connecting to session...
-        </div>
+      <div className="bg-background text-on-background h-[calc(100vh-73px)] flex flex-col overflow-hidden font-body-md antialiased w-full relative">
+        <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 md:p-6 gap-6 flex flex-col h-full overflow-hidden">
+          <div className="bg-surface border border-outline-variant rounded-xl p-6 shadow-sm shrink-0 flex flex-col min-h-[120px] w-full">
+            <div className="h-6 w-32 bg-surface-container rounded-lg animate-pulse mb-3"></div>
+            <div className="h-4 w-3/4 bg-surface-container rounded-lg animate-pulse"></div>
+            <div className="h-4 w-1/2 bg-surface-container rounded-lg animate-pulse mt-2"></div>
+          </div>
+          <div className="flex flex-col md:flex-row gap-6 flex-1 w-full">
+            <section className="w-full md:w-5/12 lg:w-4/12 flex flex-col gap-5 h-full">
+              <div className="relative w-96 max-w-full aspect-[4/3] mx-auto rounded-2xl overflow-hidden bg-surface-container animate-pulse border-2 border-outline-variant"></div>
+              <div className="w-full h-24 bg-surface-container rounded-2xl animate-pulse"></div>
+              <div className="flex gap-3 justify-center mt-2">
+                <div className="flex-1 h-11 bg-surface-container rounded-xl animate-pulse"></div>
+                <div className="flex-1 h-11 bg-surface-container rounded-xl animate-pulse"></div>
+              </div>
+            </section>
+            <section className="w-full md:w-7/12 lg:w-8/12 h-full bg-surface border border-outline-variant rounded-xl flex flex-col hidden md:flex animate-pulse">
+              <div className="h-12 bg-surface-container-lowest border-b border-outline-variant"></div>
+              <div className="flex-1 bg-[#FAFAFA]"></div>
+              <div className="h-8 bg-surface-container-lowest border-t border-outline-variant"></div>
+            </section>
+          </div>
+        </main>
       </div>
     );
   }

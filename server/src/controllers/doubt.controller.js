@@ -102,10 +102,16 @@ export const getDoubtById = async (req, res) => {
 
 export const deleteDoubt = async (req, res) => {
   try {
+    console.log(`Attempting to delete doubt with id ${req.params.id} for user ${req.user._id}`);
     const doubt = await Doubt.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
-    if (!doubt) return res.status(404).json({ message: 'Doubt not found' });
+    if (!doubt) {
+      console.log(`Doubt ${req.params.id} not found for user ${req.user._id}`);
+      return res.status(404).json({ message: 'Doubt not found' });
+    }
+    console.log(`Doubt ${req.params.id} successfully deleted`);
     res.json({ message: 'Doubt chat deleted successfully' });
   } catch (error) {
+    console.error('Delete doubt error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };

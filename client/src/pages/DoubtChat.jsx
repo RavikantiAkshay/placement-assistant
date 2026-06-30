@@ -16,6 +16,7 @@ export default function DoubtChat() {
   // Use a ref to strictly prevent double firing in React StrictMode
   const initialPromptSentRef = useRef(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null);
 
   useEffect(() => {
     if (id && id !== 'new') {
@@ -24,6 +25,29 @@ export default function DoubtChat() {
       createNewChat();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (!activeChat || !activeChat.createdAt) {
+      setTimeLeft(null);
+      return;
+    }
+    const createdAt = new Date(activeChat.createdAt).getTime();
+    const expiresAt = createdAt + 5 * 60 * 1000;
+    
+    const updateTimer = () => {
+      const now = Date.now();
+      const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
+      setTimeLeft(remaining);
+      
+      if (remaining === 0) {
+        clearInterval(interval);
+      }
+    };
+    
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [activeChat]);
 
   useEffect(() => {
     if (location.state?.initialPrompt && !initialPromptSentRef.current && id === 'new') {
@@ -48,8 +72,25 @@ export default function DoubtChat() {
 
   if (!activeChat && id !== 'new') {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex h-screen bg-[#f9f9ff] overflow-hidden">
+        {/* Skeleton Sidebar */}
+        <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col p-4 shrink-0">
+          <div className="h-8 bg-gray-200 rounded animate-pulse w-24 mb-6"></div>
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse"></div>
+            ))}
+          </div>
+        </aside>
+        {/* Skeleton Main */}
+        <main className="flex-1 flex flex-col p-8">
+          <div className="h-8 bg-gray-200 rounded animate-pulse w-48 mb-12"></div>
+          <div className="space-y-6">
+            <div className="w-3/4 h-24 bg-gray-200 rounded-2xl animate-pulse"></div>
+            <div className="w-1/2 h-24 bg-blue-100 rounded-2xl animate-pulse self-end"></div>
+            <div className="w-2/3 h-32 bg-gray-200 rounded-2xl animate-pulse"></div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -67,6 +108,7 @@ export default function DoubtChat() {
             onClick={() => setShowSidebar(false)}
             className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
             title="Hide Sidebar"
+            aria-label="Hide Sidebar"
           >
             <PanelLeft className="w-5 h-5" />
           </button>
@@ -124,6 +166,7 @@ export default function DoubtChat() {
                 onClick={() => setShowSidebar(true)} 
                 className="hidden md:flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors border border-gray-200"
                 title="Show Sidebar"
+                aria-label="Show Sidebar"
               >
                 <PanelLeft className="w-5 h-5 text-gray-500" />
               </button>
@@ -131,6 +174,7 @@ export default function DoubtChat() {
             <button 
               onClick={() => navigate('/dashboard')} 
               className="md:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-600"
+              aria-label="Back to Dashboard"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -142,6 +186,7 @@ export default function DoubtChat() {
                 <button 
                   onClick={() => setShowMenu(!showMenu)}
                   className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
+                  aria-label="Chat Options"
                 >
                   <MoreVertical className="w-5 h-5" />
                 </button>
@@ -165,6 +210,14 @@ export default function DoubtChat() {
             )}
           </div>
         </header>
+
+        {timeLeft !== null && (
+          <div className={`shrink-0 px-4 py-2 text-center text-sm font-medium transition-colors ${timeLeft === 0 ? 'bg-red-100 text-red-700' : timeLeft <= 60 ? 'bg-orange-100 text-orange-700' : 'bg-blue-50 text-blue-700'}`}>
+            {timeLeft === 0 
+              ? 'This session has expired. Please start a new doubt session to ask more questions.' 
+              : `Session expires in ${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`}
+          </div>
+        )}
 
         {/* Chat Canvas */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 flex flex-col scroll-smooth">
@@ -214,7 +267,7 @@ export default function DoubtChat() {
 
         {/* Input Area */}
         <div className="w-full bg-gradient-to-t from-[#fcfcff] via-[#fcfcff] to-transparent pt-6 pb-4">
-          <InputArea subject={activeChat?.subject} disabled={sendingMessage} />
+          <InputArea subject={activeChat?.subject} disabled={sendingMessage || timeLeft === 0} />
         </div>
       </main>
 
