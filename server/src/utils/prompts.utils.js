@@ -1,12 +1,10 @@
 export const parseGroqJSON = (text) => {
   try {
-    let cleanText = text.trim();
-    // Remove markdown code block markers if present
-    if (cleanText.startsWith('```')) {
-      cleanText = cleanText.replace(/^```(json)?\n?/, '');
-      cleanText = cleanText.replace(/\n?```\s*$/, '');
+    const jsonMatch = text.match(/[\{\[][\s\S]*[\}\]]/);
+    if (!jsonMatch) {
+      throw new Error('No JSON structure found in response.');
     }
-    return JSON.parse(cleanText.trim());
+    return JSON.parse(jsonMatch[0]);
   } catch (error) {
     console.error('Failed to parse Groq JSON response:', error.message);
     console.error('Raw text was:', text);

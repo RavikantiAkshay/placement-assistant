@@ -2,9 +2,9 @@ import Doubt from '../models/Doubt.model.js';
 import { generateChat, generateVision, transcribeAudio } from '../services/groq.service.js';
 import fs from 'fs';
 
-// Helper to format history for Groq
+// Helper to format history for Groq and apply a sliding window (last 8 messages)
 const formatHistory = (messages) => {
-  return messages.map(m => ({ role: m.role, content: m.content }));
+  return messages.slice(-8).map(m => ({ role: m.role, content: m.content }));
 };
 
 export const createOrUpdateDoubt = async (req, res) => {
