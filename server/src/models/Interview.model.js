@@ -17,6 +17,7 @@ const interviewSchema = new mongoose.Schema(
     },
     role: { type: String, required: true },
     difficulty: { type: String, default: 'Medium' },
+    persona: { type: String, default: 'standard' },
     resumeText: { type: String, default: '' },
     status: {
       type: String,

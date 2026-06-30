@@ -3,7 +3,7 @@ import User from '../models/User.model.js';
 
 export const startInterview = async (req, res, next) => {
   try {
-    const { role, difficulty, resumeText, totalQuestions } = req.body;
+    const { role, difficulty, resumeText, totalQuestions, persona } = req.body;
 
     if (!role) {
       return res.status(400).json({ success: false, message: 'Please select a role for the interview.' });
@@ -17,7 +17,8 @@ export const startInterview = async (req, res, next) => {
       difficulty,
       resumeText,
       user?.name || 'Candidate',
-      totalQuestions || 5
+      totalQuestions || 5,
+      persona || 'standard'
     );
 
     return res.status(201).json({ success: true, data: result });

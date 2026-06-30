@@ -18,6 +18,7 @@ const InterviewSetup = () => {
   const [customRole, setCustomRole] = useState('');
   const [difficulty, setDifficulty] = useState('mid');
   const [duration, setDuration] = useState('15');
+  const [persona, setPersona] = useState('standard');
   const [file, setFile] = useState(null);
   const [useManualText, setUseManualText] = useState(false);
   const [manualResumeText, setManualResumeText] = useState('');
@@ -73,7 +74,7 @@ const InterviewSetup = () => {
       const finalRole = role === 'custom' ? customRole.trim() : role;
       const questionsCount = Math.max(2, Math.round(parseInt(duration) / 3)); // Approx 3 mins per question
 
-      const interviewData = await startInterview(finalRole, difficulty, extractedText, questionsCount);
+      const interviewData = await startInterview(finalRole, difficulty, extractedText, questionsCount, persona);
       
       navigate(`/interview/${interviewData.interviewId}`, { 
         state: { firstMessage: interviewData.firstMessage } 
@@ -232,6 +233,34 @@ const InterviewSetup = () => {
                       />
                       <div className="border border-outline-variant/50 rounded-xl p-3.5 text-center transition-all duration-200 peer-checked:border-[#00855b] peer-checked:bg-[#00855b]/5 peer-checked:text-[#00855b] hover:border-[#00855b]/40 hover:bg-surface-container/50 bg-surface-container-lowest/50 shadow-sm peer-checked:shadow-md peer-checked:shadow-[#00855b]/5">
                         <span className="block text-sm font-bold capitalize">{level}</span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <label className="text-sm font-extrabold text-on-surface uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6]"></span> AI Persona
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { id: 'friendly', label: 'Supportive', desc: 'Offers hints' },
+                    { id: 'standard', label: 'Standard', desc: 'Professional' },
+                    { id: 'stress', label: 'Stress Test', desc: 'Aggressive' }
+                  ].map((p) => (
+                    <label key={p.id} className="cursor-pointer group">
+                      <input 
+                        type="radio" 
+                        name="persona" 
+                        value={p.id} 
+                        className="peer sr-only"
+                        checked={persona === p.id}
+                        onChange={(e) => setPersona(e.target.value)}
+                      />
+                      <div className="border border-outline-variant/50 rounded-xl p-2.5 text-center transition-all duration-200 peer-checked:border-[#8b5cf6] peer-checked:bg-[#8b5cf6]/5 peer-checked:text-[#8b5cf6] hover:border-[#8b5cf6]/40 hover:bg-surface-container/50 bg-surface-container-lowest/50 shadow-sm peer-checked:shadow-md peer-checked:shadow-[#8b5cf6]/5 flex flex-col items-center justify-center">
+                        <span className="block text-sm font-bold">{p.label}</span>
+                        <span className="block text-[11px] font-bold text-on-surface-variant group-hover:text-inherit transition-colors mt-0.5">{p.desc}</span>
                       </div>
                     </label>
                   ))}

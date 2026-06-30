@@ -9,7 +9,7 @@ import {
   buildConversationHistory 
 } from '../constants/prompts.js';
 
-export const startInterview = async (userId, role, difficulty, resumeText, candidateName, totalQuestions = 5) => {
+export const startInterview = async (userId, role, difficulty, resumeText, candidateName, totalQuestions = 5, persona = 'standard') => {
   // Removed daily limit constraint for development
 
   // 1. Generate personalized questions from the resume
@@ -18,7 +18,7 @@ export const startInterview = async (userId, role, difficulty, resumeText, candi
   const questions = parseGroqJSON(aiResponse);
 
   // 2. Generate the AI greeting
-  const greetingPrompt = INTERVIEW_GREETING_PROMPT(role, candidateName);
+  const greetingPrompt = INTERVIEW_GREETING_PROMPT(role, candidateName, persona);
   const greetingText = await askGroq(greetingPrompt);
 
   // 3. The first hardcoded question
@@ -30,6 +30,7 @@ export const startInterview = async (userId, role, difficulty, resumeText, candi
     userId,
     role,
     difficulty,
+    persona,
     resumeText,
     totalQuestions,
     questions: [introQuestion, ...questions],
@@ -82,7 +83,7 @@ export const submitAnswer = async (interviewId, userId, answerText, timeSpentSec
 
   // 3. Get follow-up / reaction from Groq
   const historyString = buildConversationHistory(interview.messages.slice(-6)); // Keep recent context
-  const prompt = FOLLOW_UP_PROMPT(interview.role, historyString, nextQuestion);
+  const prompt = FOLLOW_UP_PROMPT(interview.role, historyString, nextQuestion, interview.persona);
   const aiResponse = await askGroq(prompt);
 
   // 4. Add AI response to history

@@ -29,12 +29,21 @@ ${resumeText || 'No resume provided. Generate generic role questions.'}
 `;
 };
 
-export const INTERVIEW_GREETING_PROMPT = (role, candidateName) => `
+export const INTERVIEW_GREETING_PROMPT = (role, candidateName, persona = 'standard') => {
+  const personaInstruction = persona === 'friendly' 
+    ? 'You are extremely supportive, friendly, and encouraging. You want the candidate to succeed and feel comfortable.'
+    : persona === 'stress'
+    ? 'You are highly demanding, strict, and aggressive like a top-tier FAANG interviewer testing the candidate under pressure.'
+    : 'You are professional, neutral, and objective.';
+    
+  return `
 You are an expert technical interviewer conducting a ${role} interview.
 Your name is "Placement Assistant" (do NOT use any other name).
 The candidate's name is ${candidateName}.
-Generate a brief, welcoming, professional greeting (1-2 sentences max) introducing yourself. Do NOT ask the first question yet.
+PERSONA/MOOD: ${personaInstruction}
+Generate a brief, welcoming greeting (1-2 sentences max) introducing yourself, strictly adhering to your persona. Do NOT ask the first question yet.
 `;
+};
 
 export const buildConversationHistory = (messages) => {
   return messages.map(m => {
@@ -43,8 +52,16 @@ export const buildConversationHistory = (messages) => {
   }).join('\n');
 };
 
-export const FOLLOW_UP_PROMPT = (role, history, nextQuestion) => `
+export const FOLLOW_UP_PROMPT = (role, history, nextQuestion, persona = 'standard') => {
+  const personaInstruction = persona === 'friendly'
+    ? 'Be highly supportive. If they struggled or missed something, offer gentle constructive feedback or hints. Praise their correct points enthusiastically.'
+    : persona === 'stress'
+    ? 'Be highly aggressive, strict, and critical. Challenge their assumptions, point out edge cases they missed, and apply pressure. Do not praise them easily.'
+    : 'Be professional and objective. Acknowledge correct answers and briefly correct mistakes.';
+
+  return `
 You are an expert technical interviewer conducting a ${role} interview.
+PERSONA/MOOD: ${personaInstruction}
 Here is the conversation history so far:
 ${history}
 
@@ -52,12 +69,12 @@ The candidate just answered your previous question.
 RULES FOR YOUR RESPONSE:
 1. Speak DIRECTLY to the candidate (e.g., "That's a great point...", "You missed...").
 2. DO NOT output internal thoughts, reasoning, or third-person commentary like "The candidate stated...". 
-3. If their answer was incomplete or wrong, briefly correct them or acknowledge it in 1 sentence.
-4. If they were correct, briefly praise them in 1 sentence.
-5. Finally, ask the NEXT QUESTION provided below verbatim.
+3. Strictly adhere to your PERSONA/MOOD when giving feedback. Keep it brief (1-3 sentences max).
+4. Finally, ask the NEXT QUESTION provided below verbatim.
 
 NEXT QUESTION: ${nextQuestion || "That concludes our questions. Thank you for your time!"}
 `;
+};
 
 export const GENERATE_FEEDBACK_PROMPT = (role, difficulty, history) => `
 You are an expert technical interviewer and hiring manager. The following is a transcript of a ${role} interview at ${difficulty} difficulty.

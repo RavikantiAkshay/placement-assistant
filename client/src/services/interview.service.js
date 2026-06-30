@@ -9,12 +9,13 @@ export const uploadResume = async (file) => {
   return response.data.data;
 };
 
-export const startInterview = async (role, difficulty, resumeText, totalQuestions = 5) => {
+export const startInterview = async (role, difficulty, resumeText, totalQuestions = 5, persona = 'standard') => {
   const response = await API.post('/interview/start', {
     role,
     difficulty,
     resumeText,
     totalQuestions,
+    persona
   });
   return response.data.data;
 };
