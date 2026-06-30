@@ -11,6 +11,7 @@ An open-source, full-stack AI platform that conducts **real-time conversational 
 ### 🎙️ AI Conversational Engine
 - **Voice-to-Voice Interaction** — Headless native TTS reads the AI's questions to you out loud, while you respond using your microphone.
 - **Stable Audio Chunking** — Employs a custom Web Speech API architecture with non-continuous chunking to prevent browser memory buffer crashes during long-form answers.
+- **Real-Time Audio Visualizer** — Uses the Web Audio API to analyze microphone frequency data and render a dynamic pulsing ring UI, providing immediate tactile feedback during voice recording.
 - **Dual-Layer Transcription** — Uses the browser's Web Speech API for instant visual UI feedback, while securely streaming raw `MediaRecorder` audio blobs to the backend for flawless, professional-grade transcription via **Groq Whisper (`whisper-large-v3`)**.
 - **Context-Aware Follow-Ups** — The AI acts as a human interviewer, analyzing your previous answer to ask targeted follow-up questions, point out mistakes, or acknowledge correct logic before moving on.
 
@@ -30,11 +31,12 @@ An open-source, full-stack AI platform that conducts **real-time conversational 
 ### 💡 Intelligent Doubt Solver
 - **Context-Aware Assistance** — Dedicated doubt-solving chat interface that retains interview history and helps clarify complex topics or misunderstood questions in real time.
 - **Image & Voice Support** — Upload screenshots of code/errors or use the microphone for the AI to analyze and provide visual/audio-context-aware explanations.
-- **Session Management** — Full control over your history with the ability to delete past chats, and a built-in 5-minute session countdown for focused problem-solving.
+- **Session Management & Export** — Full control over your history with the ability to manage or delete past chats, and a built-in feature to download and export any chat thread as a Markdown file for offline review.
 
 ### 🔒 Platform & Security
 - **Google OAuth Integration** — Sign in effortlessly with Google.
 - **Secure Cookie-Based Auth** — HttpOnly, Secure JWT cookies with cross-origin support for production deployments.
+- **Prompt Injection Defense** — Implements strict XML-delimited prompt structuring to explicitly separate user resume data from system instructions, neutralizing prompt injection and jailbreak vulnerabilities.
 - **Session Management** — Pause an interview to resume later, or manually end the session early to trigger immediate report generation.
 
 ---
