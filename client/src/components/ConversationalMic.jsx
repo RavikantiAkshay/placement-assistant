@@ -3,12 +3,17 @@ import React, { useState, useEffect, useRef } from 'react';
 const ConversationalMic = ({ onAnswerSubmit, disabled, status, onTranscriptChange, onInterrupt }) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [volume, setVolume] = useState(0);
   
   const recognitionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const finalTranscriptRef = useRef('');
   const isListeningRef = useRef(false);
+  
+  const audioContextRef = useRef(null);
+  const analyserRef = useRef(null);
+  const animationFrameRef = useRef(null);
   
   const initRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -87,6 +92,10 @@ const ConversationalMic = ({ onAnswerSubmit, disabled, status, onTranscriptChang
         mediaRecorderRef.current.stop();
         mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
       }
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
+      }
     };
   }, []);
 
@@ -111,6 +120,26 @@ const ConversationalMic = ({ onAnswerSubmit, disabled, status, onTranscriptChang
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
       mediaRecorderRef.current.start();
+      
+      // Audio Visualizer
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      const source = audioContextRef.current.createMediaStreamSource(stream);
+      source.connect(analyserRef.current);
+      analyserRef.current.fftSize = 256;
+      const bufferLength = analyserRef.current.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      
+      const updateVolume = () => {
+        if (!analyserRef.current) return;
+        analyserRef.current.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
+        setVolume(sum / bufferLength);
+        animationFrameRef.current = requestAnimationFrame(updateVolume);
+      };
+      updateVolume();
+      
     } catch (err) {
       console.error("Microphone access denied for recording:", err);
     }
@@ -131,6 +160,12 @@ const ConversationalMic = ({ onAnswerSubmit, disabled, status, onTranscriptChang
       recognitionRef.current.onend = null;
       recognitionRef.current.stop();
     }
+    
+    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close();
+    }
+    setVolume(0);
 
     let audioBlob = null;
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
@@ -185,19 +220,33 @@ const ConversationalMic = ({ onAnswerSubmit, disabled, status, onTranscriptChang
           Stop AI
         </button>
         
-        <button 
-          onClick={toggleListen}
-          disabled={disabled}
-          className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-colors group ${
-            disabled ? 'bg-surface-container text-on-surface-variant cursor-not-allowed border border-outline-variant' :
-            isListening ? 'bg-error text-on-error hover:bg-error-container hover:text-error ripple-container' : 
-            'bg-primary text-on-primary hover:bg-surface-tint'
-          }`}
-        >
-          <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform" style={{ fontVariationSettings: "'FILL' 1" }}>
-            {isListening ? 'mic_off' : 'mic'}
-          </span>
-        </button>
+        <div className="relative flex items-center justify-center">
+          {isListening && (
+            <>
+              <div 
+                className="absolute inset-[-10px] bg-error/10 rounded-full transition-transform pointer-events-none"
+                style={{ transform: `scale(${1 + (volume / 30)})`, transitionDuration: '50ms' }}
+              ></div>
+              <div 
+                className="absolute inset-[-20px] border border-error/20 rounded-full transition-transform pointer-events-none"
+                style={{ transform: `scale(${1 + (volume / 20)})`, transitionDuration: '50ms' }}
+              ></div>
+            </>
+          )}
+          <button 
+            onClick={toggleListen}
+            disabled={disabled}
+            className={`relative z-10 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-colors group ${
+              disabled ? 'bg-surface-container text-on-surface-variant cursor-not-allowed border border-outline-variant' :
+              isListening ? 'bg-error text-on-error hover:bg-error-container hover:text-error ripple-container' : 
+              'bg-primary text-on-primary hover:bg-surface-tint'
+            }`}
+          >
+            <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform" style={{ fontVariationSettings: "'FILL' 1" }}>
+              {isListening ? 'mic_off' : 'mic'}
+            </span>
+          </button>
+        </div>
         
         <button 
           onClick={stopListening}

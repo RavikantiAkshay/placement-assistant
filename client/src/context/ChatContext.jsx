@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { createOrUpdateDoubt, fetchDoubts, fetchDoubtById, deleteDoubtAPI } from '../services/doubt.service';
+import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
 
 export const ChatContext = createContext(null);
@@ -23,12 +24,16 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  const { user } = useAuth();
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
+    if (user) {
       loadChats();
+    } else {
+      setChats([]);
+      setActiveChat(null);
     }
-  }, []);
+  }, [user]);
 
   const selectChat = async (id) => {
     try {
@@ -50,7 +55,7 @@ export const ChatProvider = ({ children }) => {
   const askText = async (chatId, question, subject) => {
     setSendingMessage(true);
     const newMsg = { _id: Date.now().toString(), role: 'user', content: question, inputMode: 'text' };
-    setActiveChat(prev => prev ? { ...prev, messages: [...prev.messages, newMsg] } : { messages: [newMsg], subject });
+    setActiveChat(prev => prev ? { ...prev, messages: [...(prev.messages || []), newMsg] } : { messages: [newMsg], subject });
 
     try {
       const res = await createOrUpdateDoubt({ chatId, question, subject, type: 'text' });
@@ -70,7 +75,7 @@ export const ChatProvider = ({ children }) => {
     setSendingMessage(true);
     const imageUrl = URL.createObjectURL(imageFile);
     const newMsg = { _id: Date.now().toString(), role: 'user', content: question || 'Uploaded Image', imageUrl, inputMode: 'image' };
-    setActiveChat(prev => prev ? { ...prev, messages: [...prev.messages, newMsg] } : { messages: [newMsg], subject });
+    setActiveChat(prev => prev ? { ...prev, messages: [...(prev.messages || []), newMsg] } : { messages: [newMsg], subject });
 
     try {
       const formData = new FormData();
@@ -97,7 +102,7 @@ export const ChatProvider = ({ children }) => {
     setSendingMessage(true);
     const audioUrl = URL.createObjectURL(audioBlob);
     const newMsg = { _id: Date.now().toString(), role: 'user', content: 'Audio Doubt', audioUrl, inputMode: 'voice' };
-    setActiveChat(prev => prev ? { ...prev, messages: [...prev.messages, newMsg] } : { messages: [newMsg], subject });
+    setActiveChat(prev => prev ? { ...prev, messages: [...(prev.messages || []), newMsg] } : { messages: [newMsg], subject });
 
     try {
       const formData = new FormData();

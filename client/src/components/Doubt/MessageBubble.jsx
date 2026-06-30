@@ -23,6 +23,7 @@ const InputTypeBadge = ({ type }) => {
 };
 
 export default function MessageBubble({ message }) {
+  if (!message) return null;
   const isUser = message.role === 'user';
   const [copied, setCopied] = useState(false);
 
@@ -52,7 +53,7 @@ export default function MessageBubble({ message }) {
           )}
           
           <div className="bg-blue-600 text-white px-4 py-3 rounded-2xl rounded-tr-sm shadow-sm font-body-md text-body-md">
-            {message.content}
+            {message.content || ''}
           </div>
         </div>
       </div>
@@ -98,7 +99,7 @@ export default function MessageBubble({ message }) {
               blockquote: ({children}) => <blockquote className="border-l-4 border-primary/40 pl-4 py-1 italic bg-primary/5 rounded-r my-4">{children}</blockquote>,
             }}
           >
-            {message.content}
+            {message.content || ''}
           </ReactMarkdown>
         </div>
         <div className="flex gap-2 mt-2">

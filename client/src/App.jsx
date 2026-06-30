@@ -10,6 +10,7 @@ import Feedback from './pages/Feedback';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import DoubtChat from './pages/DoubtChat';
+import ErrorBoundary from './components/ErrorBoundary';
 import { useLocation } from 'react-router-dom';
 function App() {
   const location = useLocation();
@@ -29,7 +30,7 @@ function App() {
           <Route path="/interview/:id" element={<ProtectedRoute><LiveInterview /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
           <Route path="/feedback/:id" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
-          <Route path="/doubts/:id" element={<ProtectedRoute><DoubtChat /></ProtectedRoute>} />
+          <Route path="/doubts/:id" element={<ProtectedRoute><ErrorBoundary><DoubtChat /></ErrorBoundary></ProtectedRoute>} />
           
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

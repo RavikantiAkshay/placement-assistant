@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useContext, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, MoreVertical, Plus, CheckCircle2, XCircle, Lightbulb, Zap, Menu, PanelLeft } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Plus, CheckCircle2, XCircle, Lightbulb, Zap, Menu, PanelLeft, Download } from 'lucide-react';
 import { ChatContext } from '../context/ChatContext';
 import MessageBubble from '../components/Doubt/MessageBubble';
 import InputArea from '../components/Doubt/InputArea';
@@ -16,7 +16,27 @@ export default function DoubtChat() {
   // Use a ref to strictly prevent double firing in React StrictMode
   const initialPromptSentRef = useRef(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(null);
+
+  const handleDownloadChat = () => {
+    if (!activeChat) return;
+    
+    let mdContent = `# ${activeChat.title || 'Doubt Session'}\n\n`;
+    (activeChat.messages || []).forEach(msg => {
+      const roleName = msg.role === 'user' ? 'You' : 'Placement Assistant';
+      mdContent += `**${roleName}**:\n${msg.content}\n\n`;
+    });
+    
+    const blob = new Blob([mdContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${activeChat.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_thread.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setShowMenu(false);
+  };
 
   useEffect(() => {
     if (id && id !== 'new') {
@@ -25,29 +45,6 @@ export default function DoubtChat() {
       createNewChat();
     }
   }, [id]);
-
-  useEffect(() => {
-    if (!activeChat || !activeChat.createdAt) {
-      setTimeLeft(null);
-      return;
-    }
-    const createdAt = new Date(activeChat.createdAt).getTime();
-    const expiresAt = createdAt + 5 * 60 * 1000;
-    
-    const updateTimer = () => {
-      const now = Date.now();
-      const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
-      setTimeLeft(remaining);
-      
-      if (remaining === 0) {
-        clearInterval(interval);
-      }
-    };
-    
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, [activeChat]);
 
   useEffect(() => {
     if (location.state?.initialPrompt && !initialPromptSentRef.current && id === 'new') {
@@ -125,7 +122,7 @@ export default function DoubtChat() {
           )}
 
           {/* List of Chats */}
-          {chats.map(chat => (
+          {(chats || []).map(chat => (
             <button 
               key={chat._id}
               onClick={() => navigate(`/doubts/${chat._id}`)}
@@ -193,6 +190,12 @@ export default function DoubtChat() {
                 {showMenu && (
                   <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
                     <button 
+                      onClick={handleDownloadChat}
+                      className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                    >
+                      <Download size={16} /> Download Chat
+                    </button>
+                    <button 
                       onClick={() => {
                         setShowMenu(false);
                         if (window.confirm('Are you sure you want to delete this chat session?')) {
@@ -211,14 +214,6 @@ export default function DoubtChat() {
           </div>
         </header>
 
-        {timeLeft !== null && (
-          <div className={`shrink-0 px-4 py-2 text-center text-sm font-medium transition-colors ${timeLeft === 0 ? 'bg-red-100 text-red-700' : timeLeft <= 60 ? 'bg-orange-100 text-orange-700' : 'bg-blue-50 text-blue-700'}`}>
-            {timeLeft === 0 
-              ? 'This session has expired. Please start a new doubt session to ask more questions.' 
-              : `Session expires in ${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`}
-          </div>
-        )}
-
         {/* Chat Canvas */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 flex flex-col scroll-smooth">
           
@@ -230,7 +225,7 @@ export default function DoubtChat() {
                 </span>
               </div>
 
-              {activeChat.messages.map((msg) => (
+              {(activeChat.messages || []).map((msg) => (
                 <MessageBubble key={msg._id} message={msg} />
               ))}
             </>
@@ -267,7 +262,7 @@ export default function DoubtChat() {
 
         {/* Input Area */}
         <div className="w-full bg-gradient-to-t from-[#fcfcff] via-[#fcfcff] to-transparent pt-6 pb-4">
-          <InputArea subject={activeChat?.subject} disabled={sendingMessage || timeLeft === 0} />
+          <InputArea subject={activeChat?.subject} disabled={sendingMessage} />
         </div>
       </main>
 
