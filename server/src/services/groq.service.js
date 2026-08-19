@@ -54,7 +54,7 @@ export const generateChat = async (messages) => {
   try {
     const chatCompletion = await withRetry(() => groq.chat.completions.create({
       messages: messages,
-      model: 'llama-3.3-70b-versatile',
+      model: 'qwen3.6-27b',
       temperature: 0.7,
     }));
     return chatCompletion.choices[0]?.message?.content || "";
