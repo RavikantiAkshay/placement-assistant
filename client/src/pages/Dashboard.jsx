@@ -701,7 +701,7 @@ const Dashboard = () => {
                   <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-black shrink-0 border-2 border-blue-200">1</div>
                   <div>
                     <h3 className="font-bold text-lg text-on-surface flex items-center gap-2 mb-2"><MessageSquare size={18} className="text-blue-600"/> Ask Anything</h3>
-                    <p className="text-on-surface-variant text-sm leading-relaxed">Type your math equation, coding bug, or theoretical question into the chat. Our qwen3.6-27b backend instantly comprehends the context of your query.</p>
+                    <p className="text-on-surface-variant text-sm leading-relaxed">Type your math equation, coding bug, or theoretical question into the chat. Our qwen/qwen3.6-27b backend instantly comprehends the context of your query.</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
@@ -739,7 +739,7 @@ const Dashboard = () => {
                     <Code size={18} className="text-primary" />
                     <h4 className="font-bold text-on-surface text-sm">Powered by Groq</h4>
                   </div>
-                  <p className="text-xs text-on-surface-variant leading-relaxed">Ultra-fast qwen3.6-27b model via Groq API for near-instant responses.</p>
+                  <p className="text-xs text-on-surface-variant leading-relaxed">Ultra-fast qwen/qwen3.6-27b model via Groq API for near-instant responses.</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-surface-container-lowest border border-outline-variant/20">
                   <div className="flex items-center gap-3 mb-2">

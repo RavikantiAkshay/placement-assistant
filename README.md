@@ -65,7 +65,7 @@ An open-source, full-stack AI platform that conducts **real-time conversational 
 │  ┌──────────────────────────────────────────────────┐   │
 │  │           External AI Services (Groq)            │   │
 │  │  ┌─────────────────┐       ┌──────────────────┐  │   │
-│  │  │ qwen3.6-27b     │       │ Whisper-Large-V3 │  │   │
+│  │  │ qwen/qwen3.6-27b │       │ Whisper-Large-V3 │  │   │
 │  │  │ (Logic & Chat)  │       │ (High-Fi Audio)  │  │   │
 │  │  └─────────────────┘       └──────────────────┘  │   │
 │  └──────────────────────────────────────────────────┘   │
@@ -102,7 +102,7 @@ An open-source, full-stack AI platform that conducts **real-time conversational 
 | JWT (jsonwebtoken) | Cookie-based authentication |
 | Multer | Audio & PDF file upload handling |
 | pdfjs-dist | Resume PDF text extraction |
-| Groq API (qwen3.6-27b) | Real-time AI interviewer & analytics engine |
+| Groq API (qwen/qwen3.6-27b) | Real-time AI interviewer & analytics engine |
 | Groq API (Whisper) | Backend raw audio transcription |
 | google-auth-library | Google OAuth verification |
 
@@ -140,7 +140,7 @@ PlacementAssistant/
 │   │   └── Interview.model.js       # Interview session & analytics schema
 │   ├── routes/
 │   ├── services/
-│   │   ├── groq.service.js          # Groq integration (qwen3.6-27b & Whisper)
+│   │   ├── groq.service.js          # Groq integration (qwen/qwen3.6-27b & Whisper)
 │   │   └── interview.service.js     # Core AI prompt management & logic
 │   ├── constants/
 │   │   └── prompts.js               # System prompts for the AI interviewer
@@ -241,7 +241,7 @@ Contributions are welcome!
 ---
 
 ## 🙏 Acknowledgements
-- [Groq](https://groq.com) — Ultra-fast AI inference (qwen3.6-27b & Whisper-Large-V3)
+- [Groq](https://groq.com) — Ultra-fast AI inference (qwen/qwen3.6-27b & Whisper-Large-V3)
 - [Mozilla PDF.js](https://mozilla.github.io/pdf.js/) — PDF parsing library
 - [Google Identity Services](https://developers.google.com/identity) — OAuth 2.0 authentication
 
